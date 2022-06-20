@@ -1,3 +1,11 @@
+/*
+ * @Author: shufei 1017981699@qq.com
+ * @Date: 2022-06-20 10:13:03
+ * @LastEditors: shufei 1017981699@qq.com
+ * @LastEditTime: 2022-06-20 15:59:43
+ * @FilePath: \vue-canvas-table\src\grid\history.js
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 export default {
     data() {
         return {
@@ -13,7 +21,6 @@ export default {
                 if (needBackValue.type === 'edit') {
                     this.saveItem(needBackValue.before, false)
                     this.focusCellByOriginCell(this.getCellByRowAndKey(needBackValue.before.index, needBackValue.before.key))
-                    this.selectArea = null
                     this.isSelect = false
                 } else if (needBackValue.type === 'editMore') {
                     this.$emit('updateValue', this.saveItems(needBackValue.before, false))
@@ -25,7 +32,6 @@ export default {
                         offset: { ...this.offset },
                     }
                     this.paintFocusCell(this.focusCell)
-                    this.selectArea = needBackValue.selectArea
                     this.isSelect = true
                     this.rePainted()
                 }

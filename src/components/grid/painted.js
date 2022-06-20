@@ -4,12 +4,6 @@
 export default {
 
     data() {
-        const oncheck = new Image()
-        oncheck.src = require('./images/oncheck.png')
-        const offcheck = new Image()
-        offcheck.src = require('./images/offcheck.png')
-        const more = new Image()
-        more.src = require('./images/more.png')
         const setting = new Image()
         setting.src = require('./images/setting.png')
         return {
@@ -29,19 +23,8 @@ export default {
             buttonColor: '#4285f4',
             // 单元格获取焦点的border颜色
             focusColor: '#61adff',
-            // 区域框选 矩形的border颜色
-            selectColor: 'red',
-            // 区域框选 矩形的背景颜色
-            selectAreaColor: 'rgba(160, 195, 255, 0.2)',
             // 行背景色
             selectRowColor: '#f5f9ff',
-            dotColor: 'red',
-            // 复选框- 选中图标
-            oncheck,
-            // 复选框- 取消选中图标
-            offcheck,
-            // 更多图标
-            more,
             // 设置图标
             setting,
             // 设置图标 宽度
@@ -100,138 +83,70 @@ export default {
         i(value) {
             return Math.round(value)
         },
+
         // 重新绘制
         rePainted() {
-            let items = this.initDisplayItems()
-            if (this.autoAddRow) { // 自动增加行，减少行
-                if (items.displayRows[items.displayRows.length - 1].rowIndex >= this.allRows.length - 50) {
-                    const startIndex = this.data.length
-                    for (let i = 0; i < 100; i += 1) {
-                        this.data.push(this.templateData)
-                    }
-                    this.setAllCells(startIndex)
-                    items = this.initDisplayItems()
-                } else if (this.data.length > this.initRows && items.displayRows[items.displayRows.length - 1].rowIndex <= this.allRows.length - 200) {
-                    this.data.splice(this.data.length - 100, 100)
-                    this.allCells.splice(this.allCells.length - 100, 100)
-                    this.allRows.splice(this.allRows.length - 100, 100)
-                    this.setBodyHeight(this.allRows, this.originPoint)
-                    this.resetScrollBar(this.maxPoint, this.bodyWidth, this.bodyHeight, this.fixedWidth)
-                    items = this.initDisplayItems()
-                }
-            }
+            // 获取所有显示项
+            const items = this.initDisplayItems()
+            // 清除画布
             this.clearPainted()
+            // 开始绘制
             this.painted(items)
+            // 返回所有显示项
             return items
         },
+
+        // 清除
         clearPainted() {
             this.ctx.clearRect(0, 0, this.width, this.height)
         },
+
         painted(displayItems) {
             const ctx = this.ctx
             const { displayColumns, displayRows, displayCells, displayFixedCells } = displayItems
-
+            // 文本颜色
             ctx.fillStyle = this.headerColor// text color
+            // 文本对齐方式
             ctx.textAlign = 'center'
+            // 线条宽度
             ctx.lineWidth = 1
+            // 描边颜色
             ctx.strokeStyle = this.borderColor
+            // 文本对齐方式
             ctx.textBaseline = 'middle'
+            // 保存
             ctx.save()
 
             this.renderButtons = []
 
+            // 画表体的单元格线
             this.paintLine(ctx, displayRows, displayColumns)
 
+            // 画表体单元格里面的内容
             this.paintBody(ctx, displayCells)
 
-            if (this.isSelect) {
-                this.paintSelect(ctx, this.selectArea)
-            }
+            // 绘制获取焦点的单元格
             if (this.isFocus) {
                 this.paintFocus(ctx, this.focusCell)
             }
 
+            // 绘制首行
             this.paintHeader(ctx, displayColumns)
 
-            if (this.showCheckbox) {
-                this.paintCheckbox(ctx, displayRows)
-            }
-
+            // 绘制首列
             this.paintSerial(ctx, displayRows)
 
+            // 绘制 左上角
             this.paintNo(ctx)
 
             if (displayFixedCells.length > 0 && this.fillWidth === 0) {
                 this.paintFixedCells(ctx, displayFixedCells, displayColumns)
             }
 
+            // 绘制 同步滚动条
             this.painScroller(ctx, this.scrollerWidth)
         },
-        paintCheckbox(ctx, displayRows) {
-            this.checkboxs = []
-            const { i, p, offset, maxPoint, allRows, focusCell, rowFocus, checkboxWidth, rowHeight, serialWidth, originPoint, height, oncheck, offcheck, selected } = this
-            ctx.fillStyle = this.fillColor
-            ctx.save()
-            if (offset.x !== 0) {
-                ctx.shadowBlur = 10
-                ctx.shadowColor = this.shadowColor
-            }
-            ctx.fillRect(i(0), p(0), i(checkboxWidth + serialWidth), i(height))
-            ctx.restore()
-            ctx.beginPath()
-            ctx.strokeStyle = this.borderColor
-            ctx.lineWidth = 1
-            ctx.moveTo(p(serialWidth), i(0))
-            ctx.lineTo(p(serialWidth), i(maxPoint.y))
-            ctx.moveTo(p(serialWidth + checkboxWidth), i(0))
-            ctx.lineTo(p(serialWidth + checkboxWidth), i(maxPoint.y))
 
-            for (const item of displayRows) {
-                if (15 + item.y > -item.height) {
-                    if (rowFocus && rowFocus.cellY === item.y) {
-                        ctx.fillStyle = this.selectRowColor
-                        ctx.fillRect(p(serialWidth), p(item.y), i(checkboxWidth - 1), i(item.height))
-                    }
-                    ctx.moveTo(p(serialWidth), p(item.y + item.height))
-                    ctx.lineTo(p(serialWidth + checkboxWidth), p(item.y + item.height))
-                    if (selected.indexOf(item.rowIndex) !== -1) {
-                        ctx.drawImage(oncheck, p(serialWidth + 5), p(item.y + 5), 20, 20)
-                    } else {
-                        ctx.drawImage(offcheck, p(serialWidth + 5), p(item.y + 5), 20, 20)
-                    }
-                    this.checkboxs.push({
-                        rowIndex: item.rowIndex,
-                        x: p(serialWidth + 5),
-                        y: p(item.y + 5),
-                        width: 20,
-                        height: 20,
-                    })
-                }
-            }
-            ctx.stroke()
-            if (this.focusCell) {
-                ctx.beginPath()
-                ctx.strokeStyle = this.focusColor
-                ctx.lineWidth = 2
-                ctx.moveTo(i(serialWidth + checkboxWidth), i(focusCell.y - 1))
-                ctx.lineTo(i(serialWidth + checkboxWidth), i(focusCell.y + focusCell.height + 1))
-                ctx.stroke()
-            }
-            ctx.beginPath()
-            ctx.strokeStyle = this.borderColor
-            ctx.fillStyle = this.fillColor
-            ctx.lineWidth = 1
-            ctx.fillRect(p(serialWidth + 1), p(0), i(checkboxWidth), i(rowHeight))
-            ctx.moveTo(p(serialWidth), p(originPoint.y))
-            ctx.lineTo(p(serialWidth + checkboxWidth), p(originPoint.y))
-            ctx.lineTo(p(serialWidth + checkboxWidth), p(0))
-            ctx.stroke()
-            if (selected.length === allRows.length) {
-                ctx.drawImage(oncheck, p(serialWidth + 5), p(5), 20, 20)
-            } else {
-                ctx.drawImage(offcheck, p(serialWidth + 5), p(5), 20, 20)
-            }
-        },
         paintLine(ctx, displayRows, displayColumns) {
             const { p, i, maxPoint, rowHeight, rowFocus, serialWidth, bodyHeight } = this
 
@@ -261,6 +176,7 @@ export default {
 
             ctx.stroke()
         },
+
         paintFixedCells(ctx, displayFixedCells, displayColumns) {
             const { bodyHeight, rowHeight, maxPoint, paintText, paintButton, p, i, allColumns, fixedWidth, fixedColumns, rowFocus } = this
             ctx.save()
@@ -305,7 +221,7 @@ export default {
             ctx.stroke()
 
             ctx.beginPath()
-            ctx.font = 'bold 12px PingFang SC'
+            ctx.font = 'normal 12px PingFang SC'
             let columnX = maxPoint.x
             for (const column of fixedColumns) {
                 let textColor = this.headerColor
@@ -326,6 +242,7 @@ export default {
             }
             ctx.stroke()
         },
+
         paintButton(ctx, item, cellX) {
             let buttonGroupWidth = 0
             for (const button of item.buttons) {
@@ -391,10 +308,9 @@ export default {
             if (this.columnSet) {
                 // (serialWidth - 16)/2
                 ctx.drawImage(setting, (serialWidth - settingWidth) / 2, (rowHeight - settingHeight) / 2, settingWidth, settingHeight)
-                console.log('%c [ serialWidth ]-361', 'font-size:13px; background:pink; color:#bf2c9f;', serialWidth)
-                console.log('%c [ rowHeight ]-351', 'font-size:13px; background:pink; color:#bf2c9f;', rowHeight)
             }
         },
+
         painScroller(ctx, height) {
             const p = this.p
             ctx.fillStyle = this.white
@@ -410,6 +326,7 @@ export default {
             ctx.fillRect(p((this.width - height) + 1), p((this.height - height) + 1), height - 1, height - 1)
             ctx.stroke()
         },
+
         paintSelect(ctx, area) {
             const { p, originPoint, maxPoint } = this
             if (area.x + area.width > originPoint.x && area.y + area.height > originPoint.y && area.x < maxPoint.x && area.y < maxPoint.y) {
@@ -426,6 +343,7 @@ export default {
                 ctx.stroke()
             }
         },
+
         paintFocus(ctx, cell) {
             const { i, originPoint, maxPoint } = this
             if (cell.x + cell.width > originPoint.x && cell.y + cell.height > originPoint.y && cell.x < maxPoint.x && cell.y < maxPoint.y) {
@@ -434,113 +352,110 @@ export default {
                 ctx.strokeRect(i(cell.x), i(cell.y), cell.width, cell.height)
             }
         },
-        paintSerial(ctx, displayRows) {
-            const { i, p, offset, bodyHeight, focusCell, rowFocus, serialWidth } = this
-            if (!this.showCheckbox) {
-                ctx.fillStyle = this.fillColor
-                ctx.save()
-                if (offset.x !== 0) {
-                    ctx.shadowBlur = 10
-                    ctx.shadowOffsetX = 3
-                    ctx.shadowColor = this.shadowColor
-                }
-                ctx.fillRect(0, 0, serialWidth, bodyHeight)
-                ctx.restore()
-            }
 
+        // 绘制首列（首列）
+        paintSerial(ctx, displayRows) {
+            const { p, offset, bodyHeight, rowFocus, serialWidth } = this
+            // 设置填充颜色
+            ctx.fillStyle = this.fillColor
+            // 保存
+            ctx.save()
+            // 如果坐标x不是0
+            if (offset.x !== 0) {
+                // 设置box-shadow
+                ctx.shadowBlur = 10
+                ctx.shadowOffsetX = 3
+                ctx.shadowColor = this.shadowColor
+            }
+            // 设置填充矩形坐标 [] (0,0) (serialWidth, bodyHeight)
+            ctx.fillRect(0, 0, serialWidth, bodyHeight)
+            // 保存
+            ctx.restore()
+            // 设置描边线宽度
             ctx.lineWidth = 1
+
             for (const item of displayRows) {
-                if (15 + item.y > -item.height) {
+                if (16 + item.y > -item.height) {
                     ctx.beginPath()
                     ctx.strokeStyle = this.borderColor
-                    let textColor = this.textColor
                     if (rowFocus && rowFocus.cellY === item.y) {
                         ctx.fillStyle = this.selectRowColor
                         ctx.fillRect(-1, item.y + 1, serialWidth + 1, item.height)
-                        textColor = this.focusColor
                     }
-                    ctx.fillStyle = textColor
+                    ctx.fillStyle = this.textColor
 
                     ctx.fillText(`${item.rowIndex + 1}`, serialWidth / 2, 15 + item.y)
                     ctx.moveTo(p(0), p(item.y + item.height))
                     ctx.lineTo(p(serialWidth), p(item.y + item.height))
                     ctx.stroke()
-
-                    if (item.showDot) {
-                        ctx.beginPath()
-                        ctx.fillStyle = this.dotColor
-                        ctx.strokeStyle = this.fillColor
-                        ctx.arc(15, 15 + item.y, 4, 0, 2 * Math.PI)
-                        ctx.fill()
-                        ctx.stroke()
-                    }
                 }
             }
             ctx.stroke()
-
-            if (this.focusCell && !this.showCheckbox) {
-                ctx.beginPath()
-                ctx.strokeStyle = this.focusColor
-                ctx.lineWidth = 2
-                ctx.moveTo(i(serialWidth), i(focusCell.y - 1))
-                ctx.lineTo(i(serialWidth), i(focusCell.y + focusCell.height + 1))
-                ctx.stroke()
-            }
         },
+
+        // 绘制首行（头部）
         paintHeader(ctx, displayColumns) {
-            const { p, i, focusCell, width, rowHeight, rowFocus } = this
+            const { p, width, rowHeight } = this
+            // 头部单元格填充颜色（除了倒三角单元格）
             ctx.fillStyle = this.fillColor
+            // 填充矩形，width为canvas的宽度，高度为单元格的高度
             ctx.fillRect(0, 0, width, rowHeight)
+            // 开始路径
             ctx.beginPath()
+            // 描边颜色
             ctx.strokeStyle = this.borderColor
-            ctx.font = 'bold 12px PingFang SC'
+            // 字体
+            ctx.font = 'normal 12px PingFang SC'
+            // 描边宽度
             ctx.lineWidth = 1
-            for (const column of displayColumns) {
+
+            for (let i = 0; i < displayColumns.length; i += 1) {
+                const column = displayColumns[i]
                 if (!column.fixed || this.fillWidth > 0) {
-                    let textColor = this.headerColor
-                    if (rowFocus && rowFocus.cellX === column.x) {
-                        ctx.fillStyle = this.selectRowColor
-                        ctx.fillRect(p(column.x), p(0), p(column.width), p(rowHeight - 1))
-                        textColor = this.focusColor
-                    }
-                    ctx.fillStyle = textColor
-                    ctx.fillText(column.title, p(column.x + (column.width / 2)), p(15))
+                    // 填充文字颜色
+                    ctx.fillStyle = this.headerColor
+                    // 填充文字内容
+                    ctx.fillText(column.title, p(column.x + (column.width / 2)), p(16))
+                    // 开始左边
                     ctx.moveTo(p(column.x + column.width), p(0))
+                    // 结束左边
                     ctx.lineTo(p(column.x + column.width), p(rowHeight))
                 }
             }
             ctx.stroke()
-
-            if (focusCell) {
-                ctx.beginPath()
-                ctx.strokeStyle = this.focusColor
-                ctx.lineWidth = 2
-                ctx.moveTo(i(focusCell.x - 1), i(rowHeight))
-                ctx.lineTo(i(focusCell.x + focusCell.width + 1), i(rowHeight))
-                ctx.stroke()
-            }
         },
+
+        // 绘制表体
         paintBody(ctx, displayCells) {
             const { paintText, i } = this
+            // 开始路径
             ctx.beginPath()
+            // 设置路径
             ctx.font = 'normal 12px PingFang SC'
+            // 设置表体所有单元格的字体颜色
             ctx.fillStyle = this.textColor
-            for (const rows of displayCells) {
-                for (const item of rows) {
+            // 遍历表体所有的单元格
+            for (let k = 0; k < displayCells.length; k += 1) {
+                const rows = displayCells[k]
+                for (let j = 0; j < rows.length; j += 1) {
+                    const item = rows[j]
                     if (!item.fixed || this.fillWidth > 0) {
+                        // 如果 当前行buttons存在，就绘制button
                         if (item.buttons) {
                             this.paintButton(ctx, item, i(item.x))
-                        } else if (item.paintText && item.paintText.length > 0) {
-                            paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText)
+                        } else if (item.paintText && item.paintText.length > 0) { // 如果文本存在，并且绘制的文本内容不为空
+                            paintText(ctx, i(item.x + (item.width / 2)), i(16 + item.y), item.paintText)
                         }
                     }
                 }
             }
             ctx.stroke()
         },
+
+        // 绘制文本内容
         paintText(ctx, x, y, row) {
-            for (let b = 0; b < row.length; b += 1) {
-                ctx.fillText(row[b], x, y + (b * 18))
+            for (let i = 0; i < row.length; i += 1) {
+                ctx.fillText(row[i], x, y + (i * 18))
             }
         },
     },

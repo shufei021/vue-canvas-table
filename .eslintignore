@@ -1,6 +1,2 @@
-/build/
-/config/
-/dist/
-/*.js
-/test/unit/coverage/
-/src/views/
+build/*.js
+config/*.js

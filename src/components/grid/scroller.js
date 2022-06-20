@@ -18,8 +18,7 @@ export default {
         }
     },
     created() {
-        this.$on('scroll', (e) => {
-            console.log(e, 'scroll')
+        this.$on('scroll', () => {
             this.horizontalBar.x = -parseInt(this.offset.x * this.horizontalBar.k, 10)
             this.verticalBar.y = -parseInt(this.offset.y * this.verticalBar.k, 10)
         })

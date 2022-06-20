@@ -1,19 +1,18 @@
 <!--
  * @Author: shufei 1017981699@qq.com
  * @Date: 2022-06-15 09:08:58
- * @LastEditors: error: git config user.name && git config user.email & please set dead value or install git
- * @LastEditTime: 2022-06-18 18:11:47
+ * @LastEditors: shufei 1017981699@qq.com
+ * @LastEditTime: 2022-06-20 15:55:32
  * @FilePath: \vue-grid-canvas\src\components\Example.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
 <template>
     <div>
-        <grid 
+        <grid
             :columnSet="columnSet"
-            :columns="columns" 
-            :grid-data="data" 
-            :showCheckbox="showCheckbox" 
-            :left-height="200" 
+            :columns="columns"
+            :grid-data="data"
+            :left-height="200"
             @focus="focus"
             @updateValue="update"
         />
@@ -28,8 +27,7 @@ export default {
     components: { Grid },
     data() {
         return {
-            columnSet: true,
-            showCheckbox: true,
+            columnSet: true,// 显示 表头设置（倒三角）
             // 数据
             data: [],
             // 表头设置

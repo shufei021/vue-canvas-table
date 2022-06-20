@@ -1,41 +1,52 @@
 <template>
+    <!-- 容器    -->
     <div ref="grid" class="excel-table" :style="`height:${height+2}px;`" @paste="doPaste">
-        <div class="input-content" :style="inputStyles" ref="input" contenteditable="true" @input="setValueTemp" @keydown.tab.prevent @keydown.enter.prevent @keydown.esc.prevent @keyup="handleInputKeyup"></div>
-        <div class="input-content" ref="inputSelect" contenteditable="true" @keydown.prevent></div>
-        <div class="horizontal-container" :style="{width:`${width-scrollerWidth+2}px`}" @click="scroll($event,0)">
-            <div class="scroll-bar-horizontal" ref="horizontal" @mousedown="dragMove($event,0)" :style="{width:horizontalBar.size+'px',left:horizontalBar.x+'px'}">
+
+        <!-- 编辑的输入框 -->
+        <div
+            class="input-content"
+            ref="input"
+            contenteditable="true"
+            :style="inputStyles"
+            @keydown.tab.prevent
+            @keydown.enter.prevent
+            @keydown.esc.prevent
+            @input="setValueTemp"
+            @keyup="handleInputKeyup"
+        ></div>
+
+        <!-- 垂直滚动条 -->
+        <div
+            class="horizontal-container"
+            :style="{width:`${width-scrollerWidth+2}px`}"
+            @click="scroll($event,0)"
+        >
+            <div
+                ref="horizontal"
+                class="scroll-bar-horizontal"
+                :style="{width:horizontalBar.size+'px',left:horizontalBar.x+'px'}"
+                @mousedown="dragMove($event,0)"
+            >
                 <div :style="horizontalBar.move?'background-color:#a1a1a1;':'background-color:#c1c1c1;'"></div>
             </div>
         </div>
 
-        <div class="vertical-container" :style="{height:`${height-scrollerWidth+2}px`}" @click="scroll($event,1)">
-            <div class="scroll-bar-vertical" ref="horizontal" @mousedown="dragMove($event,1)" :style="{height:verticalBar.size+'px',top:verticalBar.y+'px'}">
+        <!-- 横向滚动条 -->
+        <div
+            class="vertical-container"
+            :style="{height:`${height-scrollerWidth+2}px`}"
+            @click="scroll($event,1)"
+        >
+            <div
+                ref="horizontal"
+                class="scroll-bar-vertical"
+                :style="{height:verticalBar.size+'px',top:verticalBar.y+'px'}"
+                @mousedown="dragMove($event,1)"
+            >
                 <div :style="verticalBar.move?'background-color:#a1a1a1;':'background-color:#c1c1c1;'"></div>
             </div>
         </div>
-        <transition name="slide-fade">
-            <div v-if="showTip" class="tip">
-                <i class="tip-icon" :style="'background-image:url('+require('./images/error.png')+');'"></i>
-                {{tipMessage}}
-            </div>
-        </transition>
-
-        <transition name="slide-fade">
-            <div v-if="showColumnSet" ref="columnSet" class="column-set">
-                <div class="column-set__title">请选择需要显示的列</div>
-                <div class="column-set__content" :style="'max-height:'+(height-105)+'px;'">
-                    <ul>
-                        <li v-for="(item,index) of allColumns" :key="index">
-                            <checkbox v-model="item.checked">{{item.title}}</checkbox>
-                        </li>
-                    </ul>
-                </div>
-                <div class="column-set__footer">
-                    <button @click="handleColumnSet">确定</button>
-                </div>
-            </div>
-        </transition>
-
+        <!-- canvas-table -->
         <canvas ref="canvas" :width="width" :height="height" :style="`width:${width}px;height:${height}px;`"></canvas>
     </div>
 </template>
@@ -45,23 +56,17 @@ import painted from './painted'
 import events from './events'
 import calculate from './calculate'
 import scroller from './scroller'
-import checkbox from './checkbox'
 import history from './history'
 
 // type: default,noextent
 export default {
     mixins: [calculate, painted, events, scroller, history],
-    components: { checkbox },
     props: {
         columns: Array,
         gridData: Array,
         type: {
             type: String,
             default: 'default',
-        },
-        showCheckbox: {
-            type: Boolean,
-            default: false,
         },
         leftHeight: Number,
         showDot: Object,
@@ -91,7 +96,6 @@ export default {
             isSelect: false,
             isFocus: false,
 
-            selectArea: null,
             focusCell: null,
 
             currentText: '',
@@ -112,23 +116,7 @@ export default {
             this.initCanvas()
             this.painted(this.initDisplayItems())
             this.initEvent()
-        },
-        selectArea(value) {
-            if (value) {
-                const selectCells = this.getCellsBySelect(this.selectArea)
-                let copyText = '<table>'
-                for (const row of selectCells) {
-                    let temp = '<tr>'
-                    for (const cell of row) {
-                        temp += `<td>${cell.content}</td>`
-                    }
-                    temp += '</tr>'
-                    copyText += temp
-                }
-                copyText += '</table>'
-                this.$refs.inputSelect.innerHTML = copyText
-            }
-        },
+        }
     },
     created() {
         this.data = [...this.gridData]
@@ -172,7 +160,6 @@ export default {
                 y = this.rowHeight
             }
             if (!this.isPaste) {
-                this.selectArea = null
                 this.isSelect = false
                 this.rePainted()
                 this.showInput(x, y, width, height)
@@ -262,7 +249,6 @@ export default {
                             width += this.allColumns[i].width + this.fillWidth
                         }
                     }
-                    this.selectArea = { x: this.focusCell.x, y: this.focusCell.y, width, rowIndex: this.focusCell.rowIndex, cellIndex: this.focusCell.cellIndex, rowCount: Math.abs(startRowIndex - this.focusCell.rowIndex), offset: { ...this.offset } }
                     this.isSelect = true
                 }
                 this.$emit('update', modifyData)
@@ -372,7 +358,6 @@ export default {
             const historyTemp = {
                 type: 'editMore',
                 focusCell: this.focusCell,
-                selectArea: this.selectArea,
                 after: [...data],
             }
             if (data.length > this.data.length) {

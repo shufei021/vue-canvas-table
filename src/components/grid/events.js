@@ -53,7 +53,6 @@ export default {
             this.isFocus = false
             this.focusCell = null
 
-            this.selectArea = null
             this.isSelect = false
             this.save()
             this.hideInput()
@@ -69,37 +68,13 @@ export default {
          * @returns
          */
         handleClick(evt) {
-            console.log('%c [ evt ]-67', 'font-size:13px; background:pink; color:#bf2c9f;', evt)
             if (!this.isSelect) {
                 const x = evt.offsetX
                 const y = evt.offsetY
                 if (x > this.maxPoint.x && y > this.maxPoint.y && x < this.width && y < this.height) {
                     this.fullScreen()
                 }
-                if (this.showCheckbox) {
-                    if (x > this.serialWidth && x < this.originPoint.x) {
-                        const checkbox = this.getCheckboxAt(x, y)
-                        if (checkbox) {
-                            if (this.selected.indexOf(checkbox.rowIndex) !== -1) {
-                                this.selected.splice(this.selected.findIndex((item) => { if (item === checkbox.rowIndex) { return true } return false }), 1)
-                            } else {
-                                this.selected.push(checkbox.rowIndex)
-                            }
-                            this.rePainted()
-                        } else if (x > this.serialWidth + 5 && x < this.serialWidth + 5 + 20 && y > 5 && y < 25) {
-                            if (this.selected.length === this.allRows.length) {
-                                this.selected = []
-                            } else {
-                                this.selected = []
-                                for (const row of this.allRows) {
-                                    this.selected.push(row.rowIndex)
-                                }
-                            }
-                            this.rePainted()
-                        }
-                        return
-                    }
-                }
+
 
                 if (this.columnSet) {
                     if (!this.showColumnSet) {
@@ -188,39 +163,9 @@ export default {
                 }
             }
         },
-        /**
-         * @description 鼠标移动事件
-         * @param { PointerEven t} evt
-         */
+
+       // 鼠标移动事件
         handleMousemove(evt) {
-            if (this.isDown && this.isFocus && evt.target.tagName === 'CANVAS') {
-                const eX = evt.offsetX
-                const eY = evt.offsetY
-                const { x, y, width, height, rowIndex, cellIndex } = this.focusCell
-                if (eX >= x && eX <= x + width && eY >= y && eY <= y + height) {
-                    if (this.selectArea) {
-                        this.selectArea = null
-                        this.isSelect = false
-                        this.rePainted()
-                    }
-                } else {
-                    const cell = this.getCellAt(eX, eY)
-                    if (cell) {
-                        if (cell.x >= x && cell.y >= y) {
-                            this.selectArea = { x, y, width: (cell.x - x) + cell.width, height: (cell.y - y) + cell.height, cellIndex, rowIndex, offset: { ...this.offset } }
-                        } else if (cell.x >= x && cell.y <= y) {
-                            this.selectArea = { x, y: cell.y, width: (cell.x - x) + cell.width, height: (y - cell.y) + height, rowIndex: cell.rowIndex, cellIndex, offset: { ...this.offset } }
-                        } else if (cell.x <= x && cell.y <= y) {
-                            this.selectArea = { x: cell.x, y: cell.y, width: (x - cell.x) + width, height: (y - cell.y) + height, rowIndex: cell.rowIndex, cellIndex: cell.cellIndex, offset: { ...this.offset } }
-                        } else if (cell.x <= x && cell.y >= y) {
-                            this.selectArea = { x: cell.x, y, width: (x - cell.x) + width, height: (cell.y - y) + cell.height, rowIndex, cellIndex: cell.cellIndex, offset: { ...this.offset } }
-                        }
-                        this.selectArea.rowCount = Math.abs(cell.rowIndex - rowIndex) + 1
-                        this.isSelect = true
-                        this.rePainted()
-                    }
-                }
-            }
             if (this.verticalBar.move) {
                 const height = this.maxPoint.y - this.verticalBar.size
                 const moveHeight = this.verticalBar.y + (evt.screenY - this.verticalBar.cursorY)
@@ -254,17 +199,20 @@ export default {
                 this.offset.x = -this.horizontalBar.x / this.horizontalBar.k
                 requestAnimationFrame(this.rePainted)
             }
-            // 表格左上角图标如果被鼠标移上去了，就改变手型为手型，否则就改为默认
-            const x = evt.offsetX
-            const y = evt.offsetY
-            const sx = (this.serialWidth - this.settingWidth) / 2
-            const ex = sx + this.settingWidth
-            const sy = (this.rowHeight - this.settingHeight) / 2
-            const ey = sy + this.settingHeight
-            if (x > sx && x < ex && y > sy && y < ey) {
-                document.querySelector('.excel-table').style.cursor = 'pointer'
-            } else {
-                document.querySelector('.excel-table').style.cursor = 'default'
+
+            if (evt.target.tagName === 'CANVAS') {
+                // 表格左上角图标如果被鼠标移上去了，就改变手型为手型，否则就改为默认
+                const x = evt.offsetX
+                const y = evt.offsetY
+                const sx = (this.serialWidth - this.settingWidth) / 2
+                const ex = sx + this.settingWidth
+                const sy = (this.rowHeight - this.settingHeight) / 2
+                const ey = sy + this.settingHeight
+                if (x > sx && x < ex && y > sy && y < ey) {
+                    document.querySelector('.excel-table').style.cursor = 'pointer'
+                } else {
+                    document.querySelector('.excel-table').style.cursor = 'default'
+                }
             }
         },
         /**
@@ -278,7 +226,6 @@ export default {
                 setTimeout(() => {
                     this.isDown = true
                     this.hideInput()
-                    this.selectArea = null
                     this.isSelect = false
                     const eX = evt.offsetX
                     const eY = evt.offsetY
@@ -286,22 +233,11 @@ export default {
                         const cell = this.getCellAt(eX, eY)
                         if (cell && !cell.buttons && !cell.readOnly) {
                             if (this.shiftDown) {
-                                const { x, y, width, height, rowIndex, cellIndex } = this.focusCell
+                                const { x, y, width, height } = this.focusCell
                                 if (eX >= x && eX <= x + width && eY >= y && eY <= y + height) {
-                                    this.selectArea = null
                                     this.isSelect = false
                                     this.rePainted()
                                 } else {
-                                    if (cell.x >= x && cell.y >= y) {
-                                        this.selectArea = { x, y, width: (cell.x - x) + cell.width, height: (cell.y - y) + cell.height, cellIndex, rowIndex, offset: { ...this.offset } }
-                                    } else if (cell.x >= x && cell.y <= y) {
-                                        this.selectArea = { x, y: cell.y, width: (cell.x - x) + cell.width, height: (y - cell.y) + height, rowIndex: cell.rowIndex, cellIndex, offset: { ...this.offset } }
-                                    } else if (cell.x <= x && cell.y <= y) {
-                                        this.selectArea = { x: cell.x, y: cell.y, width: (x - cell.x) + width, height: (y - cell.y) + height, rowIndex: cell.rowIndex, cellIndex: cell.cellIndex, offset: { ...this.offset } }
-                                    } else if (cell.x <= x && cell.y >= y) {
-                                        this.selectArea = { x: cell.x, y, width: (x - cell.x) + width, height: (cell.y - y) + cell.height, rowIndex, cellIndex: cell.cellIndex, offset: { ...this.offset } }
-                                    }
-                                    this.selectArea.rowCount = Math.abs(cell.rowIndex - rowIndex) + 1
                                     this.isSelect = true
                                     this.rePainted()
                                 }
@@ -340,7 +276,6 @@ export default {
                         needRepaint = true
                     }
                     if (this.isSelect) {
-                        this.selectArea = null
                         this.isSelect = false
                         needRepaint = true
                     }
@@ -358,16 +293,21 @@ export default {
                 }
             }
         },
+        // 鼠标松开
         handleMouseup() {
             this.isDown = false
             this.horizontalBar.move = false
             this.verticalBar.move = false
         },
+
+        // 键盘松开
         handleKeyup(e) {
             if (e.keyCode === 16) {
                 this.shiftDown = false
             }
         },
+
+        // 键盘按下
         handleKeydown(e) {
             if (this.isFocus) {
                 if (!this.isEditing) {
@@ -387,30 +327,7 @@ export default {
                         this.shiftDown = true
                     } else if (e.keyCode === 8 || e.keyCode === 46) {
                         if (this.isSelect) {
-                            const selectCells = this.getCellsBySelect(this.selectArea)
-                            const deleteData = []
-                            for (const row of selectCells) {
-                                const temp = {
-                                    rowData: row[0].rowData,
-                                    index: row[0].rowIndex,
-                                    items: [],
-                                }
-                                for (const item of row) {
-                                    if (item.readOnly) {
-                                        temp.items.push({
-                                            key: '',
-                                            value: '',
-                                        })
-                                    } else {
-                                        temp.items.push({
-                                            key: item.key,
-                                            value: '',
-                                        })
-                                    }
-                                }
-                                deleteData.push(temp)
-                            }
-                            this.$emit('update', deleteData)
+                            this.$emit('update')
                         } else {
                             this.$emit('updateItem', {
                                 index: this.focusCell.rowIndex,
@@ -458,15 +375,18 @@ export default {
                 }
             }
         },
+
+        // 输入框松开
         handleInputKeyup() {
 
         },
+
+        // 移动聚焦
         moveFocus(type) {
             if (!this.focusCell) {
                 return
             }
             if (this.isSelect) {
-                this.selectArea = null
                 this.isSelect = false
             }
             const row = this.focusCell.rowIndex
