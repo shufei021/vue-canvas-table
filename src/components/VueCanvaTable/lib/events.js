@@ -10,7 +10,7 @@
  */
 
 
-import { throttle, debounce } from "./utils"
+import { throttle, debounce } from "../utils"
 
 export default {
   data () {

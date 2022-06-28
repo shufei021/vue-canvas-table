@@ -1,8 +1,8 @@
 <!--
  * @Author: shufei 1017981699@qq.com
  * @Date: 2022-06-24 11:12:31
- * @LastEditors: shufei 1017981699@qq.com
- * @LastEditTime: 2022-06-28 10:49:02
+ * @LastEditors: shufei
+ * @LastEditTime: 2022-06-28 17:24:57
  * @FilePath: \canvas-table-vue\src\views\Home.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -22,6 +22,19 @@ export default {
         VueCanvaTable,
     },
     data() {
+      const columns =  [
+        { title: '品牌', key: 'brandName', width: 80, sort: true },
+        { title: '商品名称', key: 'goodsName', width: 150 },
+        { title: '规格型号', key: 'sn', width: 150 },
+        { title: '物料编码', key: 'materialNo', width: 150 },
+        { title: '单位', key: 'unit', width: 70 },
+        { title: '数量', key: 'requiredQuantity', type: 'number', width: 70,isTotal: true },
+        { title: '客户备注', key: 'customerRemarks', width: 150 },
+        { title: '采购价(元)', key: 'purchasePrice', type: 'number', width: 150,isTotal: true},
+        { title: '销售价(元)', key: 'salePrice', type: 'number', width: 150,isTotal: true },
+        { title: '货期', width: 100, key: 'shipDesc' }]
+      const columnsWidth = columns.reduce((p,c)=>p+c.width,0)
+      const emptyWidth = window.innerWidth - columnsWidth - this.serialWidth
         return {
             columnSet: true,
             showCheckbox: false,
@@ -31,16 +44,8 @@ export default {
                 { title: '商品名称', key: 'goodsName', width: 150 },
             ],
             columns: [
-                { title: '品牌', key: 'brandName', width: 80 },
-                { title: '商品名称', key: 'goodsName', width: 150 },
-                { title: '规格型号', key: 'sn', width: 100 },
-                { title: '物料编码', key: 'materialNo', width: 100 },
-                { title: '单位', key: 'unit', width: 70 },
-                { title: '数量', key: 'requiredQuantity', type: 'number', width: 70,isTotal: true },
-                { title: '客户备注', key: 'customerRemarks', width: 150 },
-                { title: '采购价(元)', key: 'purchasePrice', type: 'number', width: 80,isTotal: true},
-                { title: '销售价(元)', key: 'salePrice', type: 'number', width: 80,isTotal: true },
-                { title: '货期', width: 100, key: 'shipDesc' },
+                ...columns,
+                { title: '', width: emptyWidth, key: 'empty' }
                 // {
                 //     title: '操作',
                 //     width: 70,
@@ -92,3 +97,8 @@ export default {
     },
 }
 </script>
+<style>
+body{
+  margin: 0;
+}
+</style>

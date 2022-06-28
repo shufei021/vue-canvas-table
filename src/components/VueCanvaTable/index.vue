@@ -1,34 +1,57 @@
 <template>
   <div ref="grid" class="excel-table" :style="`height:${height + 2}px;`" @paste="doPaste">
-    <div class="input-content footer" v-show="isTotalVisible" :style="inputStyles" @keydown.tab.prevent
-      @keydown.enter.prevent @keydown.esc.prevent>
+    <div
+      class="input-content footer"
+      v-show="isTotalVisible"
+      :style="inputStyles"
+      @keydown.tab.prevent
+      @keydown.enter.prevent
+      @keydown.esc.prevent>
       <slot></slot>
     </div>
-    <div class="input-content" v-show="!isTotalVisible" :style="inputStyles" ref="input" contenteditable="true"
-      @input="setValueTemp" @keydown.tab.prevent @keydown.enter.prevent @keydown.esc.prevent @keyup="handleInputKeyup">
+    <div
+      class="input-content"
+      v-show="!isTotalVisible"
+      :style="inputStyles"
+      ref="input"
+      contenteditable="true"
+      @input="setValueTemp"
+      @keydown.tab.prevent
+      @keydown.enter.prevent
+      @keydown.esc.prevent
+      @keyup="handleInputKeyup">
     </div>
 
     <div class="horizontal-container" :style="{ width: `${width - scrollerWidth + 2}px` }" @click="scroll($event, 0)">
-      <div class="scroll-bar-horizontal" ref="horizontal" @mousedown="dragMove($event, 0)" :style="{
-        width: horizontalBar.size + 'px',
-        left: horizontalBar.x + 'px',
-      }">
-        <div :style="
-          horizontalBar.move
-            ? 'background-color:#a1a1a1;'
-            : 'background-color:#c1c1c1;'
-        "></div>
+      <div
+        class="scroll-bar-horizontal"
+        ref="horizontal"
+        @mousedown="dragMove($event, 0)"
+        :style="{
+          width: horizontalBar.size + 'px',
+          left: horizontalBar.x + 'px',
+        }">
+        <div
+          :style="
+            horizontalBar.move
+              ? 'background-color:#a1a1a1;'
+              : 'background-color:#c1c1c1;'
+          "></div>
       </div>
     </div>
 
     <div class="vertical-container" :style="{ height: `${height - scrollerWidth + 2}px` }" @click="scroll($event, 1)">
-      <div class="scroll-bar-vertical" ref="horizontal" @mousedown="dragMove($event, 1)"
+      <div
+        class="scroll-bar-vertical"
+        ref="horizontal"
+        @mousedown="dragMove($event, 1)"
         :style="{ height: verticalBar.size + 'px', top: verticalBar.y + 'px' }">
-        <div :style="
-          verticalBar.move
-            ? 'background-color:#a1a1a1;'
-            : 'background-color:#c1c1c1;'
-        "></div>
+        <div
+          :style="
+            verticalBar.move
+              ? 'background-color:#a1a1a1;'
+              : 'background-color:#c1c1c1;'
+          "></div>
       </div>
     </div>
 
@@ -37,12 +60,12 @@
 </template>
 
 <script>
-import painted from "@/components/VueCanvaTable/painted";
-import events from "@/components/VueCanvaTable/events.js";
-import calculate from "@/components/VueCanvaTable/calculate";
-import scroller from "@/components/VueCanvaTable/scroller";
-import checkbox from "@/components/VueCanvaTable/checkbox";
-import history from "@/components/VueCanvaTable/history";
+import painted from './lib/painted'
+import events from './lib/events'
+import calculate from './lib/calculate'
+import scroller from './lib/scroller'
+import checkbox from './lib/checkbox.vue'
+import history from './lib/history'
 
 // type: default,noextent
 export default {
@@ -53,30 +76,30 @@ export default {
     gridData: Array,
     type: {
       type: String,
-      default: "default",
+      default: 'default'
     },
     showCheckbox: {
       type: Boolean,
-      default: false,
+      default: false
     },
     leftHeight: Number,
     showDot: Object,
     columnSet: {
       type: Boolean,
-      default: false,
+      default: false
     },
     storageKey: {
       type: String,
-      default: "gridStorage",
+      default: 'gridStorage'
     },
     initSelected: Array,
     autoAddRow: {
       type: Boolean,
-      default: false,
+      default: false
     },
-    templateData: Object,
+    templateData: Object
   },
-  data() {
+  data () {
     return {
       keys: { 37: 1, 38: 1, 39: 1, 40: 1 },
 
@@ -87,154 +110,154 @@ export default {
       isSelect: false,
       isFocus: false,
 
-      currentText: "",
+      currentText: '',
       inputStyles: {},
-      valueTemp: "",
+      valueTemp: '',
       data: null,
       showColumnSet: false,
       ratio: 1,
       showTip: false,
-      tipMessage: "",
+      tipMessage: '',
       isPaste: false,
       initRows: 300,
-      isTotalVisible: false,
-    };
+      isTotalVisible: false
+    }
   },
   watch: {
-    gridData(value) {
-      this.data = [...value];
-      this.initCanvas();
-      this.painted(this.initDisplayItems());
-      this.initEvent();
-    },
+    gridData (value) {
+      this.data = [...value]
+      this.initCanvas()
+      this.painted(this.initDisplayItems())
+      this.initEvent()
+    }
   },
-  created() {
-    this.data = [...this.gridData];
-    this.$on("updateNoSave", (data) => {
-      this.saveItems(data, false);
-    });
-    this.$on("update", (data) => {
-      this.$emit("updateValue", this.saveItems(data, true));
-    });
-    this.$on("updateItem", (data) => {
-      this.saveItem(data, true);
-    });
+  created () {
+    this.data = [...this.gridData]
+    this.$on('updateNoSave', (data) => {
+      this.saveItems(data, false)
+    })
+    this.$on('update', (data) => {
+      this.$emit('updateValue', this.saveItems(data, true))
+    })
+    this.$on('updateItem', (data) => {
+      this.saveItem(data, true)
+    })
   },
-  mounted() {
+  mounted () {
     this.$nextTick(function () {
       //eslint-disable-line
       if (this.data.length > 0) {
-        this.initCanvas();
+        this.initCanvas()
         // this.painted(this.initDisplayItems())
-        this.initSize();
-        this.initEvent();
+        this.initSize()
+        this.initEvent()
       }
-    });
+    })
   },
-  destroyed() {
-    this.removeEvent();
+  destroyed () {
+    this.removeEvent()
   },
   methods: {
-    doPaste() {
-      this.isPaste = true;
+    doPaste () {
+      this.isPaste = true
     },
-    setValueTemp(e) {
-      this.valueTemp = e.target.innerText;
-      const { width, height, serialWidth } = this.focusCell;
-      let { x, y } = this.focusCell;
+    setValueTemp (e) {
+      this.valueTemp = e.target.innerText
+      const { width, height, serialWidth } = this.focusCell
+      let { x, y } = this.focusCell
       if (x < serialWidth) {
-        this.offset.x += serialWidth - x;
-        x = serialWidth;
+        this.offset.x += serialWidth - x
+        x = serialWidth
       }
       if (y < this.rowHeight) {
-        this.offset.y += this.rowHeight - y;
-        y = this.rowHeight;
+        this.offset.y += this.rowHeight - y
+        y = this.rowHeight
       }
       if (!this.isPaste) {
-        this.isSelect = false;
-        this.rePainted();
-        this.showInput(x, y, width, height);
+        this.isSelect = false
+        this.rePainted()
+        this.showInput(x, y, width, height)
       } else if (!this.isEditing) {
-        this.isPaste = false;
+        this.isPaste = false
 
-        const objE = document.createElement("div");
-        objE.innerHTML = e.target.innerHTML;
-        const dom = objE.childNodes;
-        e.target.innerHTML = "";
-        const pasteData = [];
+        const objE = document.createElement('div')
+        objE.innerHTML = e.target.innerHTML
+        const dom = objE.childNodes
+        e.target.innerHTML = ''
+        const pasteData = []
         for (let i = 0; i < dom.length; i += 1) {
-          if (dom[i].tagName === "TABLE") {
-            const trs = dom[i].querySelectorAll("tr");
+          if (dom[i].tagName === 'TABLE') {
+            const trs = dom[i].querySelectorAll('tr')
             for (const tr of trs) {
-              const arrTmp = [];
+              const arrTmp = []
               for (const td of tr.cells) {
-                let str = td.innerText;
-                str = str.replace(/^\s+|\s+$/g, "");
-                arrTmp.push(str);
-                const colspan = td.getAttribute("colspan");
+                let str = td.innerText
+                str = str.replace(/^\s+|\s+$/g, '')
+                arrTmp.push(str)
+                const colspan = td.getAttribute('colspan')
                 if (colspan) {
                   for (let i = 1; i < colspan; i += 1) {
-                    arrTmp.push("");
+                    arrTmp.push('')
                   }
                 }
               }
-              pasteData.push(arrTmp);
+              pasteData.push(arrTmp)
             }
           } else {
-            pasteData.push([this.valueTemp]);
+            pasteData.push([this.valueTemp])
           }
         }
-        const modifyData = [];
-        let lastCellIndex = 0;
-        let startCellAt = 0;
-        let startRowIndex = this.focusCell.rowIndex;
+        const modifyData = []
+        let lastCellIndex = 0
+        let startCellAt = 0
+        let startRowIndex = this.focusCell.rowIndex
         for (const row of pasteData) {
           if (this.autoAddRow || startRowIndex < this.allRows.length) {
             let startCellIndex = this.getStartIndexByCellIndex(
               this.focusCell.cellIndex
-            );
-            startCellAt = startCellIndex;
+            )
+            startCellAt = startCellIndex
             if (startCellIndex || startCellIndex === 0) {
-              let key = this.allColumns[startCellIndex].key;
+              let key = this.allColumns[startCellIndex].key
               const temp = {
                 rowData: this.autoAddRow
                   ? null
                   : this.allCells[startRowIndex][0].rowData,
                 index: startRowIndex,
-                items: [],
-              };
-              let readOnly = false;
+                items: []
+              }
+              let readOnly = false
               for (let i = 0; i < row.length; i += 1) {
                 if (readOnly) {
                   temp.items.push({
-                    key: "",
-                    value: "",
-                  });
+                    key: '',
+                    value: ''
+                  })
                 } else {
                   temp.items.push({
                     key,
-                    value: row[i],
-                  });
+                    value: row[i]
+                  })
                 }
-                const nextColumn = this.nextKeyByIndex(startCellIndex);
+                const nextColumn = this.nextKeyByIndex(startCellIndex)
                 if (nextColumn) {
-                  key = nextColumn.key;
-                  startCellIndex = nextColumn.index;
-                  readOnly = nextColumn.readOnly;
+                  key = nextColumn.key
+                  startCellIndex = nextColumn.index
+                  readOnly = nextColumn.readOnly
                 } else {
-                  break;
+                  break
                 }
               }
               if (startCellIndex - 1 > lastCellIndex) {
-                lastCellIndex = startCellIndex - 1;
+                lastCellIndex = startCellIndex - 1
               }
-              startRowIndex += 1;
-              modifyData.push(temp);
+              startRowIndex += 1
+              modifyData.push(temp)
             }
           }
         }
         // let height = 0
-        let width = 0;
+        let width = 0
         if (
           startRowIndex - this.focusCell.rowIndex > 1 ||
           lastCellIndex - startCellAt > 0
@@ -244,229 +267,229 @@ export default {
           // }
           for (let i = startCellAt; i <= lastCellIndex; i += 1) {
             if (this.allColumns[i].checked) {
-              width += this.allColumns[i].width + this.fillWidth;
+              width += this.allColumns[i].width + this.fillWidth
             }
           }
-          this.isSelect = true;
+          this.isSelect = true
         }
-        this.$emit("update", modifyData);
+        this.$emit('update', modifyData)
       } else {
-        this.isPaste = false;
-        e.target.innerHTML = e.target.innerText;
+        this.isPaste = false
+        e.target.innerHTML = e.target.innerText
       }
     },
-    getStartIndexByCellIndex(cellIndex) {
-      let startIndex = 0;
+    getStartIndexByCellIndex (cellIndex) {
+      let startIndex = 0
       for (const item of this.allColumns) {
         if (item.cellIndex === cellIndex) {
-          return startIndex;
+          return startIndex
         }
-        startIndex += 1;
+        startIndex += 1
       }
-      return null;
+      return null
     },
-    nextKeyByIndex(index) {
+    nextKeyByIndex (index) {
       for (let i = index + 1; i < this.allColumns.length; i += 1) {
         if (this.allColumns[i].checked) {
           return {
             key: this.allColumns[i].key,
             index: i,
-            readOnly: this.allColumns[i].readOnly,
-          };
+            readOnly: this.allColumns[i].readOnly
+          }
         }
       }
-      return null;
+      return null
     },
-    validateKeyType(key) {
+    validateKeyType (key) {
       for (const item of this.allColumns) {
         if (item.key === key) {
-          if (item.type === "number") {
+          if (item.type === 'number') {
             return {
-              type: "number",
-              title: item.title,
-            };
+              type: 'number',
+              title: item.title
+            }
           }
           return {
-            type: "string",
-            title: item.title,
-          };
+            type: 'string',
+            title: item.title
+          }
         }
       }
       return {
-        type: "string",
-      };
+        type: 'string'
+      }
     },
-    paintFocusCell(cell, is) {
+    paintFocusCell (cell, is) {
       if (is) {
         if (cell) {
-          this.rePainted();
+          this.rePainted()
         }
       } else {
         if (cell) {
-          this.isFocus = true;
-          this.rePainted();
-          this.$refs.input.innerHTML = "";
-          this.focusInput();
+          this.isFocus = true
+          this.rePainted()
+          this.$refs.input.innerHTML = ''
+          this.focusInput()
         }
       }
     },
-    focusInput() {
+    focusInput () {
       setTimeout(() => {
-        this.$refs.input.focus();
-      }, 100);
+        this.$refs.input.focus()
+      }, 100)
     },
 
     /**
      * 该函数作用：
      * 检测 在有单元格处于编辑状态下，新旧值不同（有修改值动作）时，触发 更新 canvas 单元格对应的值的绘制
      */
-    save() {
+    save () {
       // 如果获取焦点并且处于编辑状态
       if (this.focusCell && this.isEditing) {
         // 输入框内容 不等于
         if (this.$refs.input.innerText !== this.allCells[this.focusCell.rowIndex][this.focusCell.cellIndex].content) {
-          this.$emit("updateItem", {
+          this.$emit('updateItem', {
             index: this.focusCell.rowIndex,
             key: this.focusCell.key,
-            value: this.$refs.input.innerText,
-          });
+            value: this.$refs.input.innerText
+          })
         }
       }
     },
-    saveItem(data, history) {
-      const { index, key } = data;
-      let value = data.value;
-      const curColumn = this.validateKeyType(key);
+    saveItem (data, history) {
+      const { index, key } = data
+      let value = data.value
+      const curColumn = this.validateKeyType(key)
 
       if (curColumn) {
-        if (curColumn.type === "number") {
+        if (curColumn.type === 'number') {
           const re =
-            /^(([1-9][0-9]*\.[0-9][0-9]*)|([0]\.[0-9][0-9]*)|([1-9][0-9]*)|([0]{1}))$/;
+            /^(([1-9][0-9]*\.[0-9][0-9]*)|([0]\.[0-9][0-9]*)|([1-9][0-9]*)|([0]{1}))$/
           if (value && !re.test(value)) {
-            this.showTipMessage(`【 ${curColumn.title} 】单元格只支持数字。`);
-            return;
+            this.showTipMessage(`【 ${curColumn.title} 】单元格只支持数字。`)
+            return
           }
           if (!value) {
-            value = null;
+            value = null
           }
         }
         if (history) {
           this.pushState({
-            type: "edit",
+            type: 'edit',
             before: { ...data, value: this.data[index][key] },
-            after: { ...data },
-          });
+            after: { ...data }
+          })
         }
-        this.data[index][key] = value;
-        this.setCellItemByKey(index, key, value);
-        this.rePainted();
-        this.$emit("updateValue", [
-          { rowData: this.data[index], items: [{ key, value }] },
-        ]);
+        this.data[index][key] = value
+        this.setCellItemByKey(index, key, value)
+        this.rePainted()
+        this.$emit('updateValue', [
+          { rowData: this.data[index], items: [{ key, value }] }
+        ])
       }
     },
-    saveItems(data, history) {
-      const returnData = [];
+    saveItems (data, history) {
+      const returnData = []
       const re =
-        /^(([1-9][0-9]*\.[0-9][0-9]*)|([0]\.[0-9][0-9]*)|([1-9][0-9]*)|([0]{1}))$/;
-      const errorTemp = [];
+        /^(([1-9][0-9]*\.[0-9][0-9]*)|([0]\.[0-9][0-9]*)|([1-9][0-9]*)|([0]{1}))$/
+      const errorTemp = []
       const historyTemp = {
-        type: "editMore",
+        type: 'editMore',
         focusCell: this.focusCell,
-        after: [...data],
-      };
+        after: [...data]
+      }
       if (data.length > this.data.length) {
         if (this.autoAddRow) {
-          const startIndex = this.data.length;
-          const length = data.length - this.data.length;
+          const startIndex = this.data.length
+          const length = data.length - this.data.length
           for (let i = 0; i < length; i += 1) {
-            this.data.push({ ...this.templateData });
+            this.data.push({ ...this.templateData })
           }
-          this.setAllCells(startIndex);
-          this.initRows = this.data.length;
+          this.setAllCells(startIndex)
+          this.initRows = this.data.length
         } else {
-          data.splice(this.data.length, data.length - this.data.length);
+          data.splice(this.data.length, data.length - this.data.length)
         }
       }
-      const beforeData = [];
+      const beforeData = []
       for (const row of data) {
         const beforeTemp = {
           rowData: row.rowData,
           index: row.index,
-          items: [],
-        };
+          items: []
+        }
         const temp = {
           rowData: row.rowData,
           items: [],
-          index: row.index,
-        };
+          index: row.index
+        }
         for (const item of row.items) {
-          const curColumn = this.validateKeyType(item.key);
+          const curColumn = this.validateKeyType(item.key)
           if (curColumn) {
-            if (curColumn.type === "number") {
+            if (curColumn.type === 'number') {
               if (item.value && !re.test(item.value)) {
                 if (errorTemp.indexOf(curColumn.title) === -1) {
-                  errorTemp.push(curColumn.title);
+                  errorTemp.push(curColumn.title)
                 }
-                continue;
+                continue
               }
               if (!item.value) {
-                item.value = null;
+                item.value = null
               }
             }
             beforeTemp.items.push({
               key: item.key,
-              value: this.data[row.index][item.key],
-            });
-            this.data[row.index][item.key] = item.value;
-            this.setCellItemByKey(row.index, item.key, item.value);
+              value: this.data[row.index][item.key]
+            })
+            this.data[row.index][item.key] = item.value
+            this.setCellItemByKey(row.index, item.key, item.value)
             temp.items.push({
               key: item.key,
-              value: item.value,
-            });
+              value: item.value
+            })
           }
         }
-        returnData.push(temp);
-        beforeData.push(beforeTemp);
+        returnData.push(temp)
+        beforeData.push(beforeTemp)
       }
-      historyTemp.before = [...beforeData];
+      historyTemp.before = [...beforeData]
       if (history) {
-        this.pushState(historyTemp);
+        this.pushState(historyTemp)
       }
       if (errorTemp.length > 0) {
-        this.showTipMessage(`【 ${errorTemp.join(",")} 】单元格只支持数字。`);
+        this.showTipMessage(`【 ${errorTemp.join(',')} 】单元格只支持数字。`)
       }
 
-      this.rePainted();
-      return returnData;
+      this.rePainted()
+      return returnData
     },
-    showInput(x, y, width, height) {
-      this.isEditing = true;
+    showInput (x, y, width, height) {
+      this.isEditing = true
       this.inputStyles = {
-        position: "absolute",
+        position: 'absolute',
         top: `${y - 1}px`,
         left: `${x - 1}px`,
         minWidth: `${width + 2}px`,
         maxWidth: `${this.maxPoint.x - x > 300 ? 300 : this.maxPoint.x - x}px`,
-        minHeight: `${height + 2}px`,
-      };
+        minHeight: `${height + 2}px`
+      }
     },
-    hideInput() {
-      this.isEditing = false;
+    hideInput () {
+      this.isEditing = false
       this.inputStyles = {
-        top: "-10000px",
-        left: "-10000px",
-      };
+        top: '-10000px',
+        left: '-10000px'
+      }
     },
-    showTipMessage(message) {
-      this.tipMessage = message;
-      this.showTip = true;
+    showTipMessage (message) {
+      this.tipMessage = message
+      this.showTip = true
       setTimeout(() => {
-        this.showTip = false;
-      }, 2000);
-    },
-  },
-};
+        this.showTip = false
+      }, 2000)
+    }
+  }
+}
 </script>
 
 <style scoped>
