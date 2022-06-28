@@ -1,11 +1,3 @@
-/*
- * @Author: shufei 1017981699@qq.com
- * @Date: 2022-06-15 09:08:58
- * @LastEditors: shufei 1017981699@qq.com
- * @LastEditTime: 2022-06-20 09:45:24
- * @FilePath: \vue-grid-canvas\build\webpack.base.conf.js
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 'use strict'
 const path = require('path')
 const utils = require('./utils')
@@ -16,7 +8,10 @@ function resolve (dir) {
   return path.join(__dirname, '..', dir)
 }
 
+
+
 module.exports = {
+  context: path.resolve(__dirname, '../'),
   entry: {
     app: './src/main.js'
   },
@@ -36,15 +31,10 @@ module.exports = {
   },
   module: {
     rules: [
-    //   {
-    //     test: /\.(js|vue)$/,
-    //     loader: 'eslint-loader',
-    //     enforce: 'pre',
-    //     include: [resolve('src'), resolve('test')],
-    //     options: {
-    //       formatter: require('eslint-friendly-formatter')
-    //     }
-    //   },
+      {
+        test: /\.sass$/,
+        loaders: ['style','css','scss'],
+      },
       {
         test: /\.vue$/,
         loader: 'vue-loader',
@@ -53,7 +43,7 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        include: [resolve('src'), resolve('test')]
+        include: [resolve('src'), resolve('test'), resolve('node_modules/webpack-dev-server/client')]
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
@@ -80,5 +70,17 @@ module.exports = {
         }
       }
     ]
+  },
+  node: {
+    // prevent webpack from injecting useless setImmediate polyfill because Vue
+    // source contains it (although only uses it if it's native).
+    setImmediate: false,
+    // prevent webpack from injecting mocks to Node native modules
+    // that does not make sense for the client
+    dgram: 'empty',
+    fs: 'empty',
+    net: 'empty',
+    tls: 'empty',
+    child_process: 'empty'
   }
 }

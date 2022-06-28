@@ -6,8 +6,14 @@ export default {
     data() {
         const rowHeight = 30
         const serialWidth = 57
+        const checkboxWidth = 80
         const scrollerWidth = 20
         const height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
+        let originPointX = serialWidth
+        if (this.showCheckbox) {
+            originPointX += checkboxWidth
+        }
+        const bottomFixedRows = 2
         return {
             width: 0,
             height,
@@ -17,7 +23,9 @@ export default {
             bodyWidth: 0,
             bodyHeight: 0,
             serialWidth,
+            checkboxWidth,
             fillWidth: 0,
+            bottomFixedRows,
 
             allCells: [],
             displayCells: [],
@@ -37,7 +45,7 @@ export default {
                 y: 0,
             },
             originPoint: {
-                x: serialWidth,
+                x: originPointX,
                 y: rowHeight,
             },
             maxPoint: {
@@ -47,6 +55,9 @@ export default {
         }
     },
     watch: {
+        showCheckbox() {
+            this.initSize()
+        },
         leftHeight() {
             this.initSize()
         },
@@ -68,15 +79,64 @@ export default {
     },
     methods: {
         fullScreen() {
+            // TODO fullscrean
 
+            // this.$refs.canvas.style.position = 'fixed'
+            // this.$refs.canvas.style.top = 0
+            // this.$refs.canvas.style.left = 0
+            // this.$refs.canvas.style.right = 0
+            // this.$refs.canvas.style.bottom = 0
+            // this.$refs.canvas.style.zIndex = 1000
+
+            // this.width = window.innerWidth
+            // this.height = window.innerHeight
+
+            // if (this.showCheckbox) {
+            //     this.selected = [...this.initSelected]
+            //     this.originPoint.x = this.serialWidth + this.checkboxWidth
+            //     this.bodyWidth += this.checkboxWidth
+            // } else {
+            //     this.originPoint.x = this.serialWidth
+            //     this.bodyWidth -= this.checkboxWidth
+            // }
+            // this.bodyWidth = this.originPoint.x
+            // let columnCount = 0
+            // for (const column of this.allColumns) {
+            //     if (column.checked) {
+            //         this.bodyWidth += column.width ? column.width : 100
+            //         columnCount += 1
+            //     }
+            // }
+            // this.fillWidth = 0
+            // if (this.bodyWidth < this.width - this.scrollerWidth) {
+            //     this.fillWidth = (this.width - this.bodyWidth - this.scrollerWidth) / columnCount
+            //     this.bodyWidth = this.width - this.scrollerWidth
+            // }
+
+            // this.setBodyHeight(this.allRows, this.originPoint)
+            // this.setFixedWidth(this.allColumns, this.fillWidth)
+            // this.setMaxpoint(this.width, this.height, this.fixedWidth, this.scrollerWidth, this.fillWidth)
+            // this.resetScrollBar(this.maxPoint, this.bodyWidth, this.bodyHeight, this.fixedWidth)
+            // requestAnimationFrame(this.rePainted)
         },
+
+
+        // 初始化尺寸大小
         initSize() {
             if (this.$refs.grid) {
                 this.width = this.$refs.grid.offsetWidth - 2
                 this.height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
 
-                this.originPoint.x = this.serialWidth
-                this.bodyWidth -= this.checkboxWidth
+                if (this.showCheckbox) {
+                    if (this.initSelected) {
+                        this.selected = [...this.initSelected]
+                    }
+                    this.originPoint.x = this.serialWidth + this.checkboxWidth
+                    this.bodyWidth += this.checkboxWidth
+                } else {
+                    this.originPoint.x = this.serialWidth
+                    this.bodyWidth -= this.checkboxWidth
+                }
                 this.bodyWidth = this.originPoint.x
                 let columnCount = 0
                 for (const column of this.allColumns) {
@@ -97,36 +157,51 @@ export default {
                 requestAnimationFrame(this.rePainted)
             }
         },
+
+        // 设置固定列表宽度值
         setFixedWidth(allColumns, fillWidth) {
+          // 固定宽度值0
             this.fixedWidth = 0
             for (const column of allColumns) {
-                if (column.checked && column.fixed) {
-                    this.fixedWidth += column.width ? column.width : 100
-                    this.fixedWidth += fillWidth
-                }
+              // 如果当前列是复选框和固定列
+              if (column.checked && column.fixed) {
+                //  固定宽度值 进行累加
+                this.fixedWidth += column.width ? column.width : 100
+                this.fixedWidth += fillWidth
+              }
             }
         },
+
+        // 设置表体绘制高度
         setBodyHeight(allRows, { y }) {
+          // 单元格的高度
             this.bodyHeight = y
+            const unit = y
             for (const row of allRows) {
                 this.bodyHeight += row.height
             }
+            // 固定底部1行 1行高度30
+            this.bodyHeight = this.bodyHeight
         },
+
+        // 设置最大点
         setMaxpoint(width, height, fixedWidth, scrollerWidth, fillWidth) {
-            if (fillWidth > 0) {
-                this.maxPoint.x = width - scrollerWidth
-            } else {
-                this.maxPoint.x = width - scrollerWidth - fixedWidth
-            }
-            this.maxPoint.y = height - scrollerWidth
+          if (fillWidth > 0) {
+            this.maxPoint.x = width - scrollerWidth
+          } else {
+            this.maxPoint.x = width - scrollerWidth - fixedWidth
+          }
+          this.maxPoint.y = height - scrollerWidth - (this.bottomFixedRows*this.rowHeight)
         },
+
+
         getAllCells(value, columns) {
-            this.allCells = []      // 所有单元格
-            this.allRows = []       // 所有行
-            this.allColumns = []    // 所有表头
-            this.allFixedCells = [] // 所有固定单元格
-            this.fixedColumns = []  // 所有固定列
-            this.fixedWidth = 0     // 固定宽度
+            this.allCells = []
+            this.allRows = []
+            this.allColumns = []
+            this.allFixedCells = []
+            this.fixedColumns = []
+            this.fixedWidth = 0
             const { rowHeight, ctx, getTextLine, allRows, allCells, allColumns, fixedColumns, allFixedCells } = this
             let rowIndex = 0
             for (const item of value) {
@@ -242,14 +317,9 @@ export default {
                 }
                 allFixedCells.push(temp)
             }
-
-            // console.log('%c [ this.allCells - 所有单元格 ]-303', 'font-size:13px; background:pink; color:#bf2c9f;', this.allCells)
-            // console.log('%c [ this.allRows -所有行]-304', 'font-size:13px; background:pink; color:#bf2c9f;', this.allRows)
-            // console.log('%c [ this.allColumns-所有表头 ]-305', 'font-size:13px; background:pink; color:#bf2c9f;', this.allColumns)
-            // console.log('%c [ this.allFixedCells-所有固定单元格 ]-306', 'font-size:13px; background:pink; color:#bf2c9f;', this.allFixedCells)
-            // console.log('%c [ this.fixedColumns-所有固定列 ]-307', 'font-size:13px; background:pink; color:#bf2c9f;', this.fixedColumns)
-            // console.log('%c [ this.fixedWidth - 固定宽度 ]-308', 'font-size:13px; background:pink; color:#bf2c9f;', this.fixedWidth)
         },
+
+
         setAllCells(startIndex) {
             const { rowHeight, ctx, getTextLine, allRows, allCells, columns } = this
             let rowIndex = startIndex
@@ -316,9 +386,12 @@ export default {
             this.setBodyHeight(this.allRows, this.originPoint)
             this.resetScrollBar(this.maxPoint, this.bodyWidth, this.bodyHeight, this.fixedWidth)
         },
+
         initRowHeight() {
 
         },
+
+
         setCellItem(rowIndex, cellIndex, text) {
             const { ctx, allRows, allCells, getTextLine, rowHeight } = this
             const row = allRows[rowIndex]
@@ -340,6 +413,8 @@ export default {
             cell.content = text
             cell.paintText = textLine
         },
+
+
         setCellItemByKey(rowIndex, key, text) {
             const { ctx, allRows, allCells, getTextLine, rowHeight } = this
             const row = allRows[rowIndex]
@@ -373,6 +448,8 @@ export default {
                 cell.paintText = textLine
             }
         },
+
+
         setCellItemAll(rowIndex, data) {
             let index = 0
             for (const item of data) {
@@ -380,6 +457,8 @@ export default {
                 index += 1
             }
         },
+
+
         getDisplayCells(displayRows, displayColumns) {
             const temp = []
             const { allCells, fillWidth, setCellRenderText } = this
@@ -401,6 +480,8 @@ export default {
             setTimeout(() => { this.displayCells = [...temp] }, 0)
             return temp
         },
+
+
         setCellRenderText(cell) {
             const text = cell.renderText(cell.rowData)
             const row = this.allRows[cell.rowIndex]
@@ -427,6 +508,7 @@ export default {
             }
             return cell
         },
+
         getDisplayFixedCells(displayRows) {
             const temp = []
             const { allFixedCells, fillWidth } = this
@@ -445,6 +527,7 @@ export default {
             setTimeout(() => { this.displayallFixedCells = [...temp] }, 0)
             return temp
         },
+
         getDisplayRows() {
             const { offset: { y }, originPoint, maxPoint, allRows } = this
             const temp = []
@@ -462,12 +545,11 @@ export default {
             setTimeout(() => { this.displayRows = [...temp] }, 0)
             return temp
         },
-        // 获取显示的列数
+
         getDisplayColumns() {
             const { offset: { x }, originPoint, maxPoint, allColumns, fillWidth } = this
             const temp = []
             let startX = originPoint.x + x
-
             for (const column of allColumns) {
                 if (column.checked) {
                     const width = column.width + fillWidth
@@ -481,6 +563,7 @@ export default {
             setTimeout(() => { this.displayColumns = [...temp] }, 0)
             return temp
         },
+
         getTextLine(ctx, text, width) {
             if (!text && text !== 0) {
                 return null
@@ -498,6 +581,7 @@ export default {
             row.push(temp)
             return row
         },
+
         getCellAt(x, y) {
             for (const rows of this.displayCells) {
                 for (const cell of rows) {
@@ -508,6 +592,7 @@ export default {
             }
             return null
         },
+
         getCheckboxAt(x, y) {
             for (const check of this.checkboxs) {
                 if (x >= check.x && y >= check.y && x <= check.x + check.width && y <= check.y + check.height) {
@@ -516,6 +601,7 @@ export default {
             }
             return null
         },
+
         getButtonAt(x, y) {
             for (const button of this.renderButtons) {
                 if (x >= button.x && y >= button.y && x <= button.x + button.width && y <= button.y + button.height) {
@@ -524,6 +610,7 @@ export default {
             }
             return null
         },
+
         getCellsBySelect(area) {
             const cells = []
             for (let i = area.rowIndex; i < area.rowIndex + area.rowCount; i += 1) {
@@ -546,6 +633,7 @@ export default {
             }
             return cells
         },
+
         getCellByRowAndKey(rowIndex, key) {
             const cells = this.allCells[rowIndex]
             for (const cell of cells) {
@@ -555,6 +643,7 @@ export default {
             }
             return null
         },
+
         focusCellByOriginCell(cell) {
             for (const row of this.displayCells) {
                 for (const item of row) {
@@ -574,6 +663,7 @@ export default {
             }
             return null
         },
+
         freshFocusCell(rowIndex, cellIndex, displayRows, displayColumns) {
             const firstRowIndex = displayRows[0].rowIndex
             const lastRowIndex = displayRows[displayRows.length - 1].rowIndex
@@ -586,6 +676,7 @@ export default {
                 }
             }
         },
+
         initDisplayItems() {
             const displayColumns = this.getDisplayColumns()
             const displayRows = this.getDisplayRows()
@@ -600,7 +691,6 @@ export default {
                     this.focusCell.offset = { ...this.offset }
                 }
             }
-
             if (this.rowFocus) {
                 const lastOffset = this.rowFocus.offset
                 if (lastOffset.x !== this.offset.x || lastOffset.y !== this.offset.y) {
