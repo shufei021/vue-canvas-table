@@ -1,5 +1,6 @@
 <template>
   <div ref="grid" class="excel-table" :style="`height:${height + 2}px;`" @paste="doPaste">
+    <!-- footer total 底部固定统计 -->
     <div
       class="input-content footer"
       v-show="isTotalVisible"
@@ -7,11 +8,20 @@
       @keydown.tab.prevent
       @keydown.enter.prevent
       @keydown.esc.prevent>
-      <slot></slot>
+      <!-- 自定义组件 -->
+      <slot name="footer"></slot>
     </div>
+    <!-- 单元格 自定义组件 -->
+    <div
+      class="input-content custom"
+      v-show="!isTotalVisible  && (focusCell &&focusCell.key &&  customComponentKeys.includes(focusCell.key))"
+      :style="inputStyles">
+      <slot name="cell"></slot>
+    </div>
+    <!-- 单元格正常输入编辑  -->
     <div
       class="input-content"
-      v-show="!isTotalVisible"
+      v-show="!isTotalVisible && !(focusCell &&focusCell.key &&  customComponentKeys.includes(focusCell.key))"
       :style="inputStyles"
       ref="input"
       contenteditable="true"
@@ -20,6 +30,7 @@
       @keydown.enter.prevent
       @keydown.esc.prevent
       @keyup="handleInputKeyup">
+
     </div>
 
     <div class="horizontal-container" :style="{ width: `${width - scrollerWidth + 2}px` }" @click="scroll($event, 0)">
@@ -97,7 +108,11 @@ export default {
       type: Boolean,
       default: false
     },
-    templateData: Object
+    templateData: Object,
+    customComponentKeys:{
+      type: Array,
+      default: ()=>[]
+    }
   },
   data () {
     return {
@@ -120,7 +135,8 @@ export default {
       tipMessage: '',
       isPaste: false,
       initRows: 300,
-      isTotalVisible: false
+      isTotalVisible: false,
+      focusCell:null
     }
   },
   watch: {
@@ -327,9 +343,11 @@ export default {
       } else {
         if (cell) {
           this.isFocus = true
+          if(!(this.focusCell &&this.focusCell.key &&  this.customComponentKeys.includes(this.focusCell.key))){
+            this.$refs.input.innerHTML = ''
+            this.focusInput()
+          }
           this.rePainted()
-          this.$refs.input.innerHTML = ''
-          this.focusInput()
         }
       }
     },

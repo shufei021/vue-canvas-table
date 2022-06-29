@@ -470,19 +470,40 @@
       ctx.lineWidth = 1
       for (const column of displayColumns) {
         if (!column.fixed || this.fillWidth > 0) {
-          ctx.textAlign = 'end'
           ctx.fillStyle = this.headerColor
-          ctx.fillText(column.title, p(column.x + (column.width / 2)), p(15))
+          if(column.center){
+            ctx.fillText(column.title, p(column.x + (column.width / 2)), p(15))
+          } else{
+            ctx.fillText(column.title, p(column.x)  + this.getWidth(column.title)/2 + 10 , p(15))
+            if(column.sort){
+              const width = 10
+              const height = 5
+              const gap = 2
+              const _height = height*2  + gap
+              const x_offset = this.i(p(column.x)  + this.getWidth(column.title) + 20)
+              const y_offset = this.i((this.rowHeight - _height)/2)
+              ctx.beginPath();
+              ctx.fillStyle="#409eff"
+              ctx.moveTo(x_offset + width/2 , y_offset );
+              ctx.lineTo(x_offset , y_offset + height);
+              ctx.lineTo(x_offset + width,y_offset + height);
+              ctx.closePath();
+              ctx.fill();
+
+              ctx.beginPath();
+              ctx.fillStyle="#c0c4cc"
+              ctx.moveTo(x_offset + width/2, y_offset + _height );
+              ctx.lineTo(x_offset , y_offset + height + gap);
+              ctx.lineTo(x_offset + width, y_offset + height + gap);
+              ctx.closePath();
+              ctx.fill();
+            }
+          }
           ctx.moveTo(p(column.x + column.width), p(0))
           ctx.lineTo(p(column.x + column.width), p(rowHeight))
-        }
-        if(column.sort){
-
+          ctx.stroke()
         }
       }
-      ctx.stroke()
-      ctx.textAlign = 'center'
-
     },
 
     // 底部填充
@@ -632,23 +653,41 @@
 
     // 表体单元格内容填充
     paintBody (ctx, displayCells) {
-      const { paintText, i } = this
+      const { paintText, i, p } = this
       ctx.beginPath()
       ctx.font = 'normal 12px PingFang SC'
       ctx.fillStyle = this.textColor
+      const {displayColumns} = this.initDisplayItems()
       for (const rows of displayCells) {
         for (const item of rows) {
+          // 找到对应的 列
+          const column = this.columns.find(i=>i.key===item.key)
+          const _column = displayColumns.find(i=>i.key===item.key)
           if (!item.fixed || this.fillWidth > 0) {
             if (item.buttons) {
               this.paintButton(ctx, item, i(item.x))
             } else if (item.paintText && item.paintText.length > 0) {
-              paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText)
+              if(column.center){
+                paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText)
+              }else{
+                paintText(ctx,  i(item.x )   + this.getWidth(item.paintText)/2 + 10 , i(15 + item.y), item.paintText)
+              }
 
             }
           }
         }
       }
       ctx.stroke()
+    },
+
+    getWidth(str,fontSize=12) {
+      const span = document.createElement('span')
+      span.innerHTML = str
+      span.style.cssText = `position:absolute;left:-10000;top:-10000px;${fontSize?'font-size:'+fontSize+'px':''}`
+      document.body.appendChild(span)
+      const width = span.offsetWidth
+      document.body.removeChild(span)
+      return width
     },
 
     // 表体单元格内容填充 - 文本填充

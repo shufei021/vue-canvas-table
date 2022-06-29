@@ -2,14 +2,22 @@
  * @Author: shufei 1017981699@qq.com
  * @Date: 2022-06-24 11:12:31
  * @LastEditors: shufei
- * @LastEditTime: 2022-06-28 17:24:57
+ * @LastEditTime: 2022-06-29 16:33:34
  * @FilePath: \canvas-table-vue\src\views\Home.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
 <template>
     <div>
-        <VueCanvaTable :allFixedCells="allFixedCells" :grid-data="data" :columns="columns" :showCheckbox="showCheckbox" :columnSet="columnSet" :left-height="200" @focus="focus" @updateValue="update">
-          <div @click="log">自定义组件</div>
+        <VueCanvaTable :customComponentKeys="customComponentKeys" :allFixedCells="allFixedCells" :grid-data="data" :columns="columns" :showCheckbox="showCheckbox" :columnSet="columnSet" :left-height="200" @focus="focus" @updateValue="update">
+          <template #footer>
+            <div @click="log">自定义组件</div>
+          </template>
+
+          <template #cell>
+            <div @click="log" v-if="activeColumnsKey === 'customerRemarks'">自定义组件-customerRemarks - 客户备注</div>
+            <div @click="log" v-else-if="activeColumnsKey === 'brandName'">自定义组件-brandName - 品牌</div>
+          </template>
+
         </VueCanvaTable>
     </div>
 </template>
@@ -23,13 +31,13 @@ export default {
     },
     data() {
       const columns =  [
-        { title: '品牌', key: 'brandName', width: 80, sort: true },
+        { title: '品牌', key: 'brandName', width: 80, center:true  },
         { title: '商品名称', key: 'goodsName', width: 150 },
         { title: '规格型号', key: 'sn', width: 150 },
-        { title: '物料编码', key: 'materialNo', width: 150 },
-        { title: '单位', key: 'unit', width: 70 },
+        { title: '物料编码', key: 'materialNo', width: 150, sort: true },
+        { title: '单位', key: 'unit', width: 70, sort: true },
         { title: '数量', key: 'requiredQuantity', type: 'number', width: 70,isTotal: true },
-        { title: '客户备注', key: 'customerRemarks', width: 150 },
+        { title: '客户备注', key: 'customerRemarks', width: 150, sort: true },
         { title: '采购价(元)', key: 'purchasePrice', type: 'number', width: 150,isTotal: true},
         { title: '销售价(元)', key: 'salePrice', type: 'number', width: 150,isTotal: true },
         { title: '货期', width: 100, key: 'shipDesc' }]
@@ -60,6 +68,8 @@ export default {
                 //     },
                 // },
             ],
+            activeColumnsKey:'',
+            customComponentKeys:['customerRemarks','brandName']
         }
     },
     created() {
@@ -91,7 +101,11 @@ export default {
         update(value) {
             console.log(value)
         },
-        focus(value) {
+        focus(value,cell) {
+
+          const columnsKey = this.columns.map(i=>i.key)[cell.cellIndex]
+          this.activeColumnsKey = columnsKey
+          console.log('%c [ cell ]-101', 'font-size:13px; background:pink; color:#bf2c9f;', this.columns.map(i=>i.key)[cell.cellIndex])
             console.log(value)
         },
     },

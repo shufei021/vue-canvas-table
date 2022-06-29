@@ -43,6 +43,8 @@ export default {
       window.removeEventListener('keydown', this.handleKeydown, false)
       window.removeEventListener('keyup', this.handleKeyup, false)
     },
+
+
     /**
      * 初始化监听事件
      */
@@ -59,16 +61,26 @@ export default {
       window.addEventListener('keyup', this.handleKeyup, false)
     },
 
+    /**
+     * 窗口发生改变
+     */
     handleResize () {
+      // 重置聚焦
       this.isFocus = false
+      // 重置聚焦单元 为 null
       this.focusCell = null
-
+      // 重置选择
       this.isSelect = false
       this.save()
+      // 隐藏输入框
       this.hideInput()
+      // 重置尺寸
       this.initSize()
     },
 
+    /**
+     * 处理列设置
+     */
     handleColumnSet () {
       this.showColumnSet = false
       this.initSize()
@@ -101,7 +113,6 @@ export default {
               }
               this.rePainted()
             } else if (x > checkboxX && x < checkboxX + checkWdith && y > 5 && y < 25) {
-              console.log('%c [ 1你的速度 ]-92', 'font-size:13px; background:pink; color:#bf2c9f;')
               if (this.selected.length === this.allRows.length) {
                 this.selected = []
               } else {
@@ -146,11 +157,9 @@ export default {
           this.rePainted()
         }
         const { displayColumns } = this.initDisplayItems()
-        console.log('-------------------')
-        console.log('-----------X--Y------', x, y)
+
 
         if (x > this.serialWidth && x < displayColumns.slice(0, 4).reduce((p, c) => p += c.width, this.serialWidth) && y > this.height - this.rowHeight - this.scrollerWidth - this.rowHeight && y < this.height - this.rowHeight - this.scrollerWidth) {
-          console.log('%c [ 点击了选择商品 ]-109', 'font-size:13px; background:pink; color:#bf2c9f;', x, y)
           const width = displayColumns.slice(0, 4).reduce((p, c) => p += c.width, 0)
           const height = this.rowHeight
           const _x = this.serialWidth
@@ -293,6 +302,8 @@ export default {
       } else {
         document.querySelector('.excel-table').style.cursor = 'default'
       }
+      console.log('%c [ this.getCellAt(eX, eY) ]-307', 'font-size:13px; background:pink; color:#bf2c9f;', this.getCellAt(eX, eY))
+      // row 的 hover 效果
       const cell = this.getCellAt(eX, eY)
       if (evt.target.tagName !== 'CANVAS') {
         this.hoverCell = null
@@ -335,7 +346,7 @@ export default {
                 offset: { ...this.offset }
               }
               this.paintFocusCell(cell)
-              this.$emit('focus', cell.rowData)
+              this.$emit('focus', cell.rowData, cell)
             } else {
               this.isFocus = false
               this.focusCell = null
@@ -350,10 +361,8 @@ export default {
       } else if (
         (evt.target && evt.target.classList && evt.target.classList.contains)) {
         // ((evt.target && evt.target.classList.contains('footer')) || (evt.target.parentNode && evt.target.parentNode.classList.contains('footer')))
-        console.log('%c [  ]-375', 'font-size:13px; background:pink; color:#bf2c9f;')
         this.isVisible = false
       } else if (!evt.target.classList.contains('input-content') && !evt.target.parentNode.classList.contains('footer')) {
-        console.log('%c [ sdsdvd  ]-370', 'font-size:13px; background:pink; color:#bf2c9f;')
         if (evt.target.tagName !== 'CANVAS') {
           if (this.isEditing) {
             this.save()
