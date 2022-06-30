@@ -177,6 +177,21 @@ export default {
       } else {
         this.isTotalVisible = false
       }
+
+      // 点击 表头排序单元格
+      const headerSortCell = this.getHeadCellAt(evt.offsetX, evt.offsetY)
+      if(headerSortCell){
+        const cache = [...this.allColumns]
+        const item = cache.find(i=>i.key===headerSortCell.key)
+        if(item) {
+          this.$emit('sort',item, [...cache])
+          setTimeout(() => {
+            item.sort =['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
+            this.allColumns = cache
+            this.rePainted()
+          })
+        }
+      }
     },
 
     /**
@@ -297,12 +312,20 @@ export default {
       const ex = sx + this.settingWidth
       const sy = (this.rowHeight - this.settingHeight) / 2
       const ey = sy + this.settingHeight
-      if (x > sx && x < ex && y > sy && y < ey) {
+      const headerCell = this.getHeadCellAt(x, y,evt)
+      if ((x > sx && x < ex && y > sy && y < ey) || headerCell) {
         document.querySelector('.excel-table').style.cursor = 'pointer'
+        if(headerCell){
+          this.paintHeaderSortCellHover(headerCell)
+        }else{
+          this.sortCell = null
+        }
       } else {
+        this.sortCell = null
         document.querySelector('.excel-table').style.cursor = 'default'
+
       }
-      console.log('%c [ this.getCellAt(eX, eY) ]-307', 'font-size:13px; background:pink; color:#bf2c9f;', this.getCellAt(eX, eY))
+
       // row 的 hover 效果
       const cell = this.getCellAt(eX, eY)
       if (evt.target.tagName !== 'CANVAS') {
@@ -311,7 +334,7 @@ export default {
         this.rePainted()
       } else {
         if (cell) {
-          this.hover(cell)
+          this.paintBodyRowHover(cell)
         } else {
           this.hoverCell = null
           this.rowHover = null
@@ -319,6 +342,18 @@ export default {
         }
       }
     }, 16),
+
+    // 获取排序的cloumn信息
+    getHeadCellAt(x, y,evt) {
+      if(evt &&evt.target&& evt.target.tagName !== 'CANVAS') return null
+      const {displayColumns} = this.initDisplayItems()
+      const headCell = displayColumns.find(i=>x>this.i(i.x)&&x< this.i(i.x)+i.width)
+      if(headCell && headCell.sort && y>0 && y <this.rowHeight){
+        return headCell
+      }else{
+        return null
+      }
+    },
 
     /**
      *

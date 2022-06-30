@@ -343,9 +343,9 @@
     },
 
     /**
-       * @description 左上角表格绘制
-       * @param {*} ctx
-       */
+     * @description 左上角表格绘制
+     * @param {*} ctx
+     */
     paintNo (ctx) {
       const {
         p,
@@ -396,7 +396,7 @@
     paintFocus (ctx, cell) {
       const { i, originPoint, maxPoint } = this
       if (cell.x + cell.width > originPoint.x && cell.y + cell.height > originPoint.y && cell.x < maxPoint.x && cell.y < maxPoint.y) {
-        ctx.lineWidth = 2
+        ctx.lineWidth = 1
         ctx.strokeStyle = this.focusColor
         ctx.strokeRect(i(cell.x), i(cell.y), cell.width, cell.height)
       }
@@ -460,7 +460,7 @@
 
     // 填充头部
     paintHeader (ctx, displayColumns) {
-      const { p, width, rowHeight } = this
+      const { p, i, width, rowHeight } = this
       ctx.fillStyle = this.fillColor
       ctx.save()
       ctx.fillRect(0, 0, width, rowHeight)
@@ -468,6 +468,10 @@
       ctx.strokeStyle = this.borderColor
       ctx.font = 'bold 12px PingFang SC'
       ctx.lineWidth = 1
+      if(this.sortCell){
+        ctx.fillStyle = '#e9e9e9'
+        ctx.fillRect(i(this.sortCell.x), 0, this.sortCell.width, rowHeight)
+      }
       for (const column of displayColumns) {
         if (!column.fixed || this.fillWidth > 0) {
           ctx.fillStyle = this.headerColor
@@ -480,10 +484,13 @@
               const height = 5
               const gap = 2
               const _height = height*2  + gap
-              const x_offset = this.i(p(column.x)  + this.getWidth(column.title) + 20)
-              const y_offset = this.i((this.rowHeight - _height)/2)
+              const x_offset = i(p(column.x)  + this.getWidth(column.title) + 20)
+              const y_offset = i((this.rowHeight - _height)/2)
+
+              // 上三角
               ctx.beginPath();
-              ctx.fillStyle="#409eff"
+              // ctx.fillStyle="#409eff"
+              ctx.fillStyle= column.sort === 'up'?  '#409eff':"#c0c4cc"
               ctx.moveTo(x_offset + width/2 , y_offset );
               ctx.lineTo(x_offset , y_offset + height);
               ctx.lineTo(x_offset + width,y_offset + height);
@@ -491,7 +498,8 @@
               ctx.fill();
 
               ctx.beginPath();
-              ctx.fillStyle="#c0c4cc"
+
+              ctx.fillStyle= column.sort === 'down'? '#409eff':"#c0c4cc"
               ctx.moveTo(x_offset + width/2, y_offset + _height );
               ctx.lineTo(x_offset , y_offset + height + gap);
               ctx.lineTo(x_offset + width, y_offset + height + gap);
@@ -527,31 +535,27 @@
         i++
         if (!column.fixed || this.fillWidth > 0) {
           ctx.fillStyle = '#378efb'
-          // this.height - this.rowHeight - this.scrollerWidth
-          // ctx.fillText(column.title, p(column.x + (column.width / 2)),this.height - this.rowHeight - this.scrollerWidth + (this.rowHeight/2)- this.rowHeight)
+
+          const y = this.height - this.rowHeight - this.scrollerWidth
           if (i === 5) { //
             ctx.fillStyle = '#bfbfbf'
-            ctx.fillText('请输入商品名称/编号/条码', p(displayColumns[0].x) + this.serialWidth + 30, this.height - this.rowHeight - this.scrollerWidth - this.rowHeight / 2 + 2)
+            ctx.fillText('请输入商品名称/编号/条码', p(displayColumns[0].x) + this.serialWidth + 30, y - this.rowHeight / 2 + 2)
             // 合并前4列表
-            ctx.moveTo(p(displayColumns[0].x), this.height - this.rowHeight - this.scrollerWidth - this.rowHeight)
-            ctx.lineTo(p(column.x + column.width) - column.width, this.height - this.rowHeight - this.scrollerWidth - this.rowHeight)
-            ctx.lineTo(p(column.x + column.width), this.height - this.rowHeight - this.scrollerWidth - this.rowHeight)
-            ctx.lineTo(p(column.x + column.width), this.height - this.rowHeight - this.scrollerWidth + this.rowHeight - this.rowHeight)
-            //
-            ctx.stroke()
+            ctx.moveTo(p(displayColumns[0].x), y - this.rowHeight)
+            ctx.lineTo(p(column.x + column.width) - column.width, y - this.rowHeight)
+            ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
+            ctx.lineTo(p(column.x + column.width), y)
           } else if (i > 3) {
-            ctx.moveTo(p(column.x + column.width) - column.width, this.height - this.rowHeight - this.scrollerWidth - this.rowHeight)
-            ctx.lineTo(p(column.x + column.width), this.height - this.rowHeight - this.scrollerWidth - this.rowHeight)
-            ctx.lineTo(p(column.x + column.width), this.height - this.rowHeight - this.scrollerWidth + this.rowHeight - this.rowHeight)
-            //
-            ctx.stroke()
+            ctx.moveTo(p(column.x + column.width) - column.width, y - this.rowHeight)
+            ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
+            ctx.lineTo(p(column.x + column.width), y)
           }
 
-          ctx.fillText(column.isTotal ? 100 : '', p(column.x + (column.width / 2)), this.height - this.rowHeight - this.scrollerWidth + (this.rowHeight / 2))
+          ctx.fillText(column.isTotal ? 100 : '', p(column.x + (column.width / 2)), y + (this.rowHeight / 2))
 
-          ctx.moveTo(p(column.x + column.width) - column.width, this.height - this.rowHeight - this.scrollerWidth)
-          ctx.lineTo(p(column.x + column.width), this.height - this.rowHeight - this.scrollerWidth)
-          ctx.lineTo(p(column.x + column.width), this.height - this.rowHeight - this.scrollerWidth + this.rowHeight)
+          ctx.moveTo(p(column.x + column.width) - column.width, y)
+          ctx.lineTo(p(column.x + column.width), y)
+          ctx.lineTo(p(column.x + column.width), y + this.rowHeight)
         }
       }
       ctx.stroke()
@@ -587,7 +591,7 @@
       ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth, serialWidth, rowHeight)
 
       ctx.fillStyle = this.headerColor
-      ctx.fillText('合并', serialWidth / 2, this.height - this.rowHeight - this.scrollerWidth + this.rowHeight / 2)
+      ctx.fillText('合计', serialWidth / 2, this.height - this.rowHeight - this.scrollerWidth + this.rowHeight / 2)
       ctx.lineWidth = 1
       ctx.moveTo(p(serialWidth) - this.serialWidth, this.height - this.rowHeight - this.scrollerWidth)
       ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth)
@@ -604,7 +608,7 @@
       // }
     },
 
-    hover (cell) {
+    paintBodyRowHover (cell) {
       if (cell) {
         this.hoverCell = cell
         this.rowHover = {
@@ -617,21 +621,40 @@
       }
     },
 
+    paintHeaderSortCellHover(cell){
+      this.sortCell = cell
+      this.rePainted()
+    },
+
+
     // 画表体单元格线框
     paintLine (ctx, displayRows, displayColumns) {
       const { p, i, maxPoint, rowHeight, rowFocus, serialWidth, bodyHeight } = this
+      // 过滤出 需要渲染列表背景色的 Columns
+      const bgColumns = displayColumns.filter(i=>i.isCloumnBg)
 
       // 画横线
       for (const item of displayRows) {
         if ((rowFocus && rowFocus.cellY === item.y) || (this.hoverCell && this.hoverCell.y === item.y)) {
           ctx.fillStyle = this.selectRowColor
           ctx.fillRect(p(-1), p(item.y), i(maxPoint.x), i(item.height))
+        }else{
+          for(const column of bgColumns){
+            ctx.fillStyle = '#fafafa'
+            ctx.fillRect(
+              column.x,
+              p(item.y),
+              column.width,
+              column.height
+            )
+          }
         }
       }
 
       ctx.beginPath()
       ctx.strokeStyle = this.borderColor
       ctx.lineWidth = 1
+
       // 画竖线
       for (const column of displayColumns) {
         if (!column.fixed) {
@@ -657,7 +680,7 @@
       ctx.beginPath()
       ctx.font = 'normal 12px PingFang SC'
       ctx.fillStyle = this.textColor
-      const {displayColumns} = this.initDisplayItems()
+      const { displayColumns } = this.initDisplayItems()
       for (const rows of displayCells) {
         for (const item of rows) {
           // 找到对应的 列
@@ -672,7 +695,6 @@
               }else{
                 paintText(ctx,  i(item.x )   + this.getWidth(item.paintText)/2 + 10 , i(15 + item.y), item.paintText)
               }
-
             }
           }
         }
@@ -680,6 +702,7 @@
       ctx.stroke()
     },
 
+    // 获取字符串宽度
     getWidth(str,fontSize=12) {
       const span = document.createElement('span')
       span.innerHTML = str

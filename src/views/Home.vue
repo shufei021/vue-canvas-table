@@ -2,117 +2,265 @@
  * @Author: shufei 1017981699@qq.com
  * @Date: 2022-06-24 11:12:31
  * @LastEditors: shufei
- * @LastEditTime: 2022-06-29 16:33:34
+ * @LastEditTime: 2022-06-30 16:28:01
  * @FilePath: \canvas-table-vue\src\views\Home.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
 <template>
-    <div>
-        <VueCanvaTable :customComponentKeys="customComponentKeys" :allFixedCells="allFixedCells" :grid-data="data" :columns="columns" :showCheckbox="showCheckbox" :columnSet="columnSet" :left-height="200" @focus="focus" @updateValue="update">
-          <template #footer>
-            <div @click="log">自定义组件</div>
-          </template>
+  <div class="demo-wrap">
+    <VueCanvaTable
+      ref="VueCanvaTable"
+      :customComponentKeys="customComponentKeys"
+      :allFixedCells="allFixedCells"
+      :grid-data="data"
+      :columns="columns"
+      :showCheckbox="showCheckbox"
+      :columnSet="columnSet"
+      :left-height="200"
+      @sort="sort"
+      @focus="focus"
+      @updateValue="update"
+    >
+      <!-- 底部选择商品组件 -->
+      <template #footer>
+        <div @click="log">自定义组件</div>
+      </template>
 
-          <template #cell>
-            <div @click="log" v-if="activeColumnsKey === 'customerRemarks'">自定义组件-customerRemarks - 客户备注</div>
-            <div @click="log" v-else-if="activeColumnsKey === 'brandName'">自定义组件-brandName - 品牌</div>
-          </template>
-
-        </VueCanvaTable>
-    </div>
+      <!-- 自定义表头字段自定义组件 -->
+      <template #cell>
+        <div @click="log" v-if="activeColumnsKey === 'customerRemarks'">
+          自定义组件-customerRemarks - 客户备注
+        </div>
+        <div @click="log" v-else-if="activeColumnsKey === 'brandName'">
+          自定义组件-brandName - 品牌
+        </div>
+      </template>
+    </VueCanvaTable>
+  </div>
 </template>
 
 <script>
-import VueCanvaTable from '@/components/VueCanvaTable'
-
+import VueCanvaTable from "@/components/VueCanvaTable";
+import date from "rdatejs";
+import utils from "rutilsjs";
+const dateRangeRandom = function(d = new Date(), ft) {
+  // 获取时间日期
+  const dt = new Date(d);
+  const month = dt.getMonth() + 1;
+  const days = date.daysInMonth(dt);
+  const ret = [];
+  for (let i = 1; i <= days; i++) {
+    ret.push(
+      date.format(
+        date.format(`2022/${month}/${i}`, "YYYY-MM-DD") +
+          ` ${utils.rangeRandom(0, 23)}:${utils.rangeRandom(0, 59)}`,
+        ft || "YYYY-MM-DD hh:mm"
+      )
+    );
+  }
+  const r = ret[utils.rangeRandom(1, days)[0]] || dateRangeRandom();
+  return r;
+};
 export default {
-    components: {
-        VueCanvaTable,
-    },
-    data() {
-      const columns =  [
-        { title: '品牌', key: 'brandName', width: 80, center:true  },
-        { title: '商品名称', key: 'goodsName', width: 150 },
-        { title: '规格型号', key: 'sn', width: 150 },
-        { title: '物料编码', key: 'materialNo', width: 150, sort: true },
-        { title: '单位', key: 'unit', width: 70, sort: true },
-        { title: '数量', key: 'requiredQuantity', type: 'number', width: 70,isTotal: true },
-        { title: '客户备注', key: 'customerRemarks', width: 150, sort: true },
-        { title: '采购价(元)', key: 'purchasePrice', type: 'number', width: 150,isTotal: true},
-        { title: '销售价(元)', key: 'salePrice', type: 'number', width: 150,isTotal: true },
-        { title: '货期', width: 100, key: 'shipDesc' }]
-      const columnsWidth = columns.reduce((p,c)=>p+c.width,0)
-      const emptyWidth = window.innerWidth - columnsWidth - this.serialWidth
-        return {
-            columnSet: true,
-            showCheckbox: false,
-            data: [],
-            allFixedCells:[
-               { title: '品牌', key: 'brandName', width: 80 },
-                { title: '商品名称', key: 'goodsName', width: 150 },
-            ],
-            columns: [
-                ...columns,
-                { title: '', width: emptyWidth, key: 'empty' }
-                // {
-                //     title: '操作',
-                //     width: 70,
-                //     fixed: true,
-                //     renderButton(rowData, index) {
-                //         return [{
-                //             title: '操作',
-                //             click() {
-                //                 console.log(rowData, index)
-                //             },
-                //         }]
-                //     },
-                // },
-            ],
-            activeColumnsKey:'',
-            customComponentKeys:['customerRemarks','brandName']
+  components: {
+    VueCanvaTable
+  },
+  data() {
+    const columns = [
+      {
+        title: "品牌",
+        key: "brandName",
+        width: 80,
+        center: true
+      },
+      {
+        title: "商品名称",
+        key: "goodsName",
+        width: 150
+      },
+      {
+        title: "规格型号",
+        key: "sn",
+        width: 150
+      },
+      {
+        title: "物料编码",
+        key: "materialNo",
+        width: 150,
+        sort: "default",
+        isCloumnBg: true
+      },
+      {
+        title: "单位",
+        key: "unit",
+        width: 70,
+        sort: "default",
+        isCloumnBg: true
+      },
+      {
+        title: "数量",
+        key: "requiredQuantity",
+        type: "number",
+        width: 70,
+        isTotal: true
+      },
+      {
+        title: "客户备注",
+        key: "customerRemarks",
+        width: 150,
+        sort: "default",
+        isCloumnBg: true
+      },
+      {
+        title: "采购价(元)",
+        key: "purchasePrice",
+        type: "number",
+        width: 150,
+        isTotal: true
+      },
+      {
+        title: "销售价(元)",
+        key: "salePrice",
+        type: "number",
+        width: 150,
+        isTotal: true
+      },
+      {
+        title: "货期",
+        width: 100,
+        key: "shipDesc"
+      },
+      {
+        title: "创建时间",
+        width: 150,
+        key: "createDate",
+        sort: "default",
+        isCloumnBg: true
+      }
+    ];
+    const columnsWidth = columns.reduce((p, c) => p + c.width, 0);
+    const emptyWidth = window.innerWidth - columnsWidth - 57;
+    return {
+      columnSet: true,
+      showCheckbox: false,
+      data: [],
+      allFixedCells: [
+        // { title: "品牌", key: "brandName", width: 80 },
+        // { title: "商品名称", key: "goodsName", width: 150 }
+      ],
+      columns: [
+        ...columns,
+        { title: "", width: emptyWidth, key: "empty" }
+        // {
+        //     title: '操作',
+        //     width: 70,
+        //     fixed: true,
+        //     renderButton(rowData, index) {
+        //         return [{
+        //             title: '操作',
+        //             click() {
+        //                 console.log(rowData, index)
+        //             },
+        //         }]
+        //     },
+        // },
+      ],
+      activeColumnsKey: "",
+      customComponentKeys: ["customerRemarks", "brandName"]
+    };
+  },
+  created() {
+    this.data1 = [];
+    for (let i = 0; i < 100; i += 1) {
+      this.data1.push({
+        brandName: `博世${i}`,
+        goodsName: `电钻${i}`,
+        sn: `SDFSD${i}`,
+        materialNo: i + 1,
+        unit: "个",
+        requiredQuantity: 10,
+        customerRemarks: `测试测试${i}`,
+        purchasePrice: 10.2,
+        salePrice: 12.3,
+        shipDesc: 10,
+        createDate: dateRangeRandom()
+      });
+    }
+  },
+  mounted() {
+    this.$nextTick(() => {
+      this.data = this.data1;
+    });
+  },
+  methods: {
+    /**
+     * @description 排序
+     * @param {Object} item :点击的排序对象
+     */
+    sort(item) {
+      if (item.key === "materialNo") {
+        // 物料编码
+        if (item.sort == "up") {
+          this.data.sort((a, b) => +a.materialNo - b.materialNo);
+        } else {
+          this.data.sort((a, b) => +b.materialNo - a.materialNo);
         }
-    },
-    created() {
-        this.data1 = []
-        for (let i = 0; i < 100; i += 1) {
-            this.data1.push({
-                brandName: `博世${i}`,
-                goodsName: `电钻${i}`,
-                sn: `SDFSD${i}`,
-                materialNo: `1231${i}`,
-                unit: '个',
-                requiredQuantity: 10,
-                customerRemarks: `测试测试${i}`,
-                purchasePrice: 10.2,
-                salePrice: 12.3,
-                shipDesc: 10,
-            })
+      } else if (item.key === "customerRemarks") {
+        // 客户备注
+        if (item.sort == "up") {
+          this.data.sort(
+            (a, b) => a.customerRemarks.length - b.customerRemarks.length
+          );
+        } else {
+          this.data.sort(
+            (a, b) => b.customerRemarks.length - a.customerRemarks.length
+          );
         }
+      } else if (item.key === "unit") {
+        // 单位
+        if (item.sort == "up") {
+          this.data.sort((a, b) => a.unit.length - b.unit.length);
+        } else {
+          this.data.sort((a, b) => b.unit.length - a.unit.length);
+        }
+      } else if (item.key === "createDate") {
+        if (item.sort == "up") {
+          this.data.sort(
+            (a, b) => new Date(a.createDate) - new Date(b.createDate)
+          );
+        } else {
+          this.data.sort(
+            (a, b) => new Date(b.createDate) - new Date(a.createDate)
+          );
+        }
+      }
     },
-    mounted() {
-        this.$nextTick(() => {
-            this.data = this.data1
-        })
+    log() {
+      alert(1);
     },
-    methods: {
-        log(){
-          alert(1)
-        },
-        update(value) {
-            console.log(value)
-        },
-        focus(value,cell) {
-
-          const columnsKey = this.columns.map(i=>i.key)[cell.cellIndex]
-          this.activeColumnsKey = columnsKey
-          console.log('%c [ cell ]-101', 'font-size:13px; background:pink; color:#bf2c9f;', this.columns.map(i=>i.key)[cell.cellIndex])
-            console.log(value)
-        },
+    update(value) {
+      console.log(value);
     },
-}
+    focus(value, cell) {
+      const columnsKey = this.columns.map(i => i.key)[cell.cellIndex];
+      this.activeColumnsKey = columnsKey;
+      console.log(
+        "%c [ cell ]-101",
+        "font-size:13px; background:pink; color:#bf2c9f;",
+        this.columns.map(i => i.key)[cell.cellIndex]
+      );
+      console.log(value);
+    }
+  }
+};
 </script>
 <style>
-body{
+body {
   margin: 0;
+}
+.demo-wrap{
+  width: 1745px;
+  height: 983px;
+  margin: 50px auto;
 }
 </style>
