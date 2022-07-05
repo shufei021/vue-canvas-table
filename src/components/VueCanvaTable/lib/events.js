@@ -269,79 +269,165 @@ export default {
     /**
      * 鼠标移动
      */
-    handleMousemove: debounce(function (evt) {
+    handleMousemove:debounce(function (evt) {
       const eX = evt.offsetX
       const eY = evt.offsetY
-      if (this.verticalBar.move) {
-        const height = this.maxPoint.y - this.verticalBar.size
-        const moveHeight = this.verticalBar.y + (evt.screenY - this.verticalBar.cursorY)
-        if (moveHeight > 0 && moveHeight < height) {
-          this.verticalBar.y += evt.screenY - this.verticalBar.cursorY
-        } else if (moveHeight <= 0) {
-          this.verticalBar.y = 0
-        } else {
-          this.verticalBar.y = height
+      // 鼠标hover在canvas
+      if(evt.target.tagName === 'CANVAS') {
+        // 列宽
+        if(this.lineCell && this.isDown) {
+          this.cloumnLineStyle.left = (this.i(evt.offsetX)===-1? this.cloumnLineStyle.left : this.i(evt.offsetX)) + 'px'
         }
-        this.verticalBar.cursorY = evt.screenY
-        this.offset.y = -this.verticalBar.y / this.verticalBar.k
-        requestAnimationFrame(this.rePainted)
-      }
-      if (this.horizontalBar.move) {
-        let width = 0
-        if (this.fillWidth > 0) {
-          width = this.maxPoint.x - this.horizontalBar.size
+        // 表格左上角图标如果被鼠标移上去了，就改变手型为手型，否则就改为默认
+        const x = evt.offsetX
+        const y = evt.offsetY
+        const sx = (this.serialWidth - this.settingWidth) / 2
+        const ex = sx + this.settingWidth
+        const sy = (this.rowHeight - this.settingHeight) / 2
+        const ey = sy + this.settingHeight
+        const headerCell = this.getHeadCellAt(x, y,evt)
+        const lineCell = this.getHeaderLineCell(eX, eY)
+        if ((x > sx && x < ex && y > sy && y < ey) || headerCell) {
+          document.querySelector('.excel-table').style.cursor = 'pointer'
+          if(headerCell){
+            this.paintHeaderSortCellHover(headerCell)
+          }else{
+            this.sortCell = null
+          }
+          if(!(this.lineCell && this.isDown))this.lineCell = null
+        }else if(lineCell && !this.isDown){
+          this.lineCell = lineCell
+          document.querySelector('.excel-table').style.cursor = 'e-resize'
         } else {
-          width = (this.maxPoint.x + this.fixedWidth) - this.horizontalBar.size
-        }
-        const moveWidth = this.horizontalBar.x + (evt.screenX - this.horizontalBar.cursorX)
-        if (moveWidth > 0 && moveWidth < width) {
-          this.horizontalBar.x += evt.screenX - this.horizontalBar.cursorX
-        } else if (moveWidth <= 0) {
-          this.horizontalBar.x = 0
-        } else {
-          this.horizontalBar.x = width
-        }
-        this.horizontalBar.cursorX = evt.screenX
-        this.offset.x = -this.horizontalBar.x / this.horizontalBar.k
-        requestAnimationFrame(this.rePainted)
-      }
-      // 表格左上角图标如果被鼠标移上去了，就改变手型为手型，否则就改为默认
-      const x = evt.offsetX
-      const y = evt.offsetY
-      const sx = (this.serialWidth - this.settingWidth) / 2
-      const ex = sx + this.settingWidth
-      const sy = (this.rowHeight - this.settingHeight) / 2
-      const ey = sy + this.settingHeight
-      const headerCell = this.getHeadCellAt(x, y,evt)
-      if ((x > sx && x < ex && y > sy && y < ey) || headerCell) {
-        document.querySelector('.excel-table').style.cursor = 'pointer'
-        if(headerCell){
-          this.paintHeaderSortCellHover(headerCell)
-        }else{
           this.sortCell = null
+          if(!(this.lineCell && this.isDown)) this.lineCell = null
+          if(!(this.lineCell && this.isDown)) document.querySelector('.excel-table').style.cursor = 'default'
         }
-      } else {
-        this.sortCell = null
-        document.querySelector('.excel-table').style.cursor = 'default'
 
-      }
 
-      // row 的 hover 效果
-      const cell = this.getCellAt(eX, eY)
-      if (evt.target.tagName !== 'CANVAS') {
-        this.hoverCell = null
-        this.rowHover = null
-        this.rePainted()
-      } else {
-        if (cell) {
-          this.paintBodyRowHover(cell)
-        } else {
+        // row 的 hover 效果
+        const cell = this.getCellAt(eX, eY)
+        if (evt.target.tagName !== 'CANVAS') {
           this.hoverCell = null
           this.rowHover = null
           this.rePainted()
+        } else {
+          if (cell) {
+            this.paintBodyRowHover(cell)
+          } else {
+            this.hoverCell = null
+            this.rowHover = null
+            // this.rePainted()
+            const cell = this.hoverFirstColumnCell(evt)
+            cell && this.paintFirstColumnCellHover(cell)
+          }
         }
+        // 表头前面图标hover
+        const headerCellInfo = this.getHeadColumnCell(evt)
+        if(headerCellInfo){
+          if(headerCellInfo.tip){
+            if(x >= headerCellInfo.tip.point.x
+              && x<= headerCellInfo.tip.point.x + headerCellInfo.tip.size
+              && y>= headerCellInfo.tip.point.y
+              && y<= headerCellInfo.tip.point.y + headerCellInfo.tip.size
+            ){
+              this.tooltip = headerCellInfo.tip.desc
+              this.tooltipStyle.left = this.i(headerCellInfo.tip.point.x + headerCellInfo.tip.size/2) + 'px'
+              this.tooltipStyle.top = this.i(headerCellInfo.tip.point.y + headerCellInfo.tip.size-2) + 'px'
+            }
+          }
+        }else{
+          this.tooltip = ''
+          this.tooltipStyle = {
+            left:'-10000px',
+            top:'-10000px'
+          }
+        }
+      }else{
+        if(['vertical','horizontalBar'].includes(evt.target.className)){
+
+          // 纵向滚动
+          if (this.verticalBar.move) {
+            const height = this.maxPoint.y - this.verticalBar.size
+            const moveHeight = this.verticalBar.y + (evt.screenY - this.verticalBar.cursorY)
+            if (moveHeight > 0 && moveHeight < height) {
+              this.verticalBar.y += evt.screenY - this.verticalBar.cursorY
+            } else if (moveHeight <= 0) {
+              this.verticalBar.y = 0
+            } else {
+              this.verticalBar.y = height
+            }
+            this.verticalBar.cursorY = evt.screenY
+            this.offset.y = -this.verticalBar.y / this.verticalBar.k
+            requestAnimationFrame(this.rePainted)
+          }
+          //横向滚动
+          if (this.horizontalBar.move) {
+            let width = 0
+            if (this.fillWidth > 0) {
+              width = this.maxPoint.x - this.horizontalBar.size
+            } else {
+              width = (this.maxPoint.x + this.fixedWidth) - this.horizontalBar.size
+            }
+            const moveWidth = this.horizontalBar.x + (evt.screenX - this.horizontalBar.cursorX)
+            if (moveWidth > 0 && moveWidth < width) {
+              this.horizontalBar.x += evt.screenX - this.horizontalBar.cursorX
+            } else if (moveWidth <= 0) {
+              this.horizontalBar.x = 0
+            } else {
+              this.horizontalBar.x = width
+            }
+            this.horizontalBar.cursorX = evt.screenX
+            this.offset.x = -this.horizontalBar.x / this.horizontalBar.k
+            requestAnimationFrame(this.rePainted)
+          }
+        }
+        // console.log('%c [ evt ]-385', 'font-size:13px; background:pink; color:#bf2c9f;',this.isDown, evt.target.className)
       }
     }, 16),
+
+    hoverFirstColumnCell({offsetX:x, offsetY:y}){
+      if(x>0 && x< this.serialWidth){
+        const item = this.displayRows.find(i=>y<i.y)
+        if(item){
+          for (const rows of this.displayCells) {
+            for (const cell of rows) {
+              if (x >= cell.x - this.serialWidth && y >= cell.y && x <= cell.x + cell.width-this.serialWidth && y <= cell.y + cell.height) {
+                return Object.assign({}, cell, { offset: { ...this.offset } })
+              }
+            }
+          }
+        }else{
+          return null
+        }
+      }else{
+        return null
+      }
+    },
+
+    getHeaderLineCell(x, y){
+      const cell = this.displayColumns.find(i=>this.i(i.width + i.x)-x>= -3 && this.i(i.width + i.x)-x<=3)
+      if(cell && y>0 && y <this.rowHeight){
+        return cell
+      }else{
+        return null
+      }
+    },
+
+    // 获取首列区域的列表头单元对象
+    getHeadColumnCell({offsetX:x, offsetY:y, target:t}){
+      if(t && t.tagName && t.tagName === 'CANVAS'){
+        // 显示在视图的列中找到
+        const cell = this.displayColumns.find(i => x>this.i(i.x)&&x< this.i(i.x)+i.width)
+        if(cell && y>0 && y <this.rowHeight){
+          return cell
+        }else{
+          return null
+        }
+      }else{
+        return null
+      }
+    },
 
     // 获取排序的cloumn信息
     getHeadCellAt(x, y,evt) {
@@ -361,6 +447,7 @@ export default {
      *
      */
     handleMousedown (evt) {
+
       this.save()
       let needRepaint = false
       if (evt.target.tagName === 'CANVAS') {
@@ -393,6 +480,9 @@ export default {
             this.rePainted()
           }
         }, 0)
+        if(this.lineCell){
+          this.cloumnLineStyle.left = this.i(evt.offsetX) + 'px'
+        }
       } else if (
         (evt.target && evt.target.classList && evt.target.classList.contains)) {
         // ((evt.target && evt.target.classList.contains('footer')) || (evt.target.parentNode && evt.target.parentNode.classList.contains('footer')))
@@ -436,8 +526,21 @@ export default {
      *
      */
     handleMouseup () {
+      // 如果列宽目标列 存在 并且是鼠标按下的状态
+      if(this.lineCell && this.isDown){
+        const { x, width, key } = this.lineCell
+        const diff = this.i(parseInt(this.cloumnLineStyle.left) - x - width)
+        const dispalyCloumnItem = this.displayColumns.find(i=>i.key === key)
+        const allCloumnItem = this.allColumns.find(i=>i.key === key)
+        if(dispalyCloumnItem && allCloumnItem)this.$emit('columnWidthChange',key,diff)
+      }
+      // 重置列宽虚线为隐藏
+      this.cloumnLineStyle.left =  '-10000px!important'
+      // 重置按下标识为false
       this.isDown = false
+      // 重置横向移动标识为false
       this.horizontalBar.move = false
+      // 重置纵向移动标识为false
       this.verticalBar.move = false
     },
 

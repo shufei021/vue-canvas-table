@@ -1,7 +1,7 @@
 /**
  * 绘制
  */
-
+ import { throttle } from "../utils"
  export default {
   data () {
     const oncheck = new Image()
@@ -17,6 +17,9 @@
 
     const setting = new Image()
     setting.src = require('../images/setting.png')
+
+    const imgLoadingFail = new Image()
+    imgLoadingFail.src = require('../images/loading_fail.png')
     return {
       // 首行背景填充色
       fillColor: '#fafafa',
@@ -54,7 +57,8 @@
       // 复选框图标宽度
       checkWdith: 20,
       down,
-      downWidth: 0
+      downWidth: 0,
+      imgLoadingFail
     }
   },
   methods: {
@@ -405,6 +409,8 @@
     // 首列 文字填充
     paintSerial (ctx, displayRows) {
       const { p, offset, bodyHeight, rowFocus, serialWidth } = this
+
+      // 复选框
       if (!this.showCheckbox) {
         ctx.fillStyle = this.fillColumnColor
         ctx.save()
@@ -417,24 +423,57 @@
         ctx.restore()
       }
 
+      // 首列
       ctx.lineWidth = 1
       for (const item of displayRows) {
         if (15 + item.y > -item.height) {
           ctx.beginPath()
           ctx.strokeStyle = this.borderColor
           // 获取焦点单元格存在，或者 hover单元格存在
-          if ((rowFocus && rowFocus.cellY === item.y) || (this.hoverCell && this.hoverCell.y === item.y)) {
+          if ((rowFocus && rowFocus.cellY === item.y) || (this.hoverCell && this.hoverCell.y === item.y )) {
             ctx.fillStyle = this.selectRowColor
+            ctx.fillRect(-1, item.y + 1, serialWidth + 1, item.height)
+
+            if(this.hoverCell && this.hoverCell.y === item.y){
+
+              // console.log('%c [  ]-439', 'font-size:13px; background:pink; color:#bf2c9f;', )
+            }
+          }else if (this.fisrtCell && item.y=== this.fisrtCell.y){
+            ctx.fillStyle = 'red'
             ctx.fillRect(-1, item.y + 1, serialWidth + 1, item.height)
           }
 
           ctx.fillStyle = this.textColor
           ctx.font = 'normal 12px PingFang SC'
+          if(this.fisrtCell){
+            // hover 加减 + -
+            // console.log('%c [ this.fisrtCel ]-439', 'font-size:13px; background:pink; color:#bf2c9f;', this.fisrtCell)
+            // ctx.fillStyle = '#fff'
+            // ctx.beginPath()
+            // ctx.fillRect(0, this.fisrtCell.y, serialWidth , this.fisrtCell.height)
+            // // 绘图
+            // //01 移动画笔moveTo(x,y) 坐标 24 21
+            // ctx.moveTo( serialWidth / 2,15 + this.fisrtCell.y)
+            // // 02 划线  坐标
+            // ctx.lineTo(serialWidth / 2 + 24,this.fisrtCell.y+30)
+            // ctx.lineTo(serialWidth / 2+57,15 + this.fisrtCell.y + 30)
+            // ctx.lineTo(serialWidth / 2-57,15 + this.fisrtCell.y + 30)
+            // ctx.lineTo( serialWidth / 2,15 + this.fisrtCell.y)
+            // //以上两行代码只是一个路径，但还没有绘制
+            // //03 绘制
+            // ctx.closePath()
+            ctx.fillText(`${item.rowIndex + 1}`, serialWidth / 2, 15 + item.y)
+            ctx.moveTo(p(0), p(item.y + item.height))
+            ctx.lineTo(p(serialWidth), p(item.y + item.height))
+            ctx.stroke()
+          }else{
+            ctx.fillText(`${item.rowIndex + 1}`, serialWidth / 2, 15 + item.y)
+            ctx.moveTo(p(0), p(item.y + item.height))
+            ctx.lineTo(p(serialWidth), p(item.y + item.height))
+            ctx.stroke()
+          }
 
-          ctx.fillText(`${item.rowIndex + 1}`, serialWidth / 2, 15 + item.y)
-          ctx.moveTo(p(0), p(item.y + item.height))
-          ctx.lineTo(p(serialWidth), p(item.y + item.height))
-          ctx.stroke()
+
 
           // if (item.showDot) {
           //     ctx.beginPath()
@@ -446,7 +485,7 @@
           // }
         }
       }
-      ctx.stroke()
+      // ctx.stroke()
 
       // if (this.focusCell && !this.showCheckbox) {
       //     ctx.beginPath()
@@ -478,7 +517,20 @@
           if(column.center){
             ctx.fillText(column.title, p(column.x + (column.width / 2)), p(15))
           } else{
-            ctx.fillText(column.title, p(column.x)  + this.getWidth(column.title)/2 + 10 , p(15))
+            if(column.tip){
+              const x = p(column.x)  + this.getWidth(column.title)/2 + 10
+              ctx.drawImage(
+                column.tip.img,
+                p(column.x) + 10,
+                (rowHeight - column.tip.size) / 2,
+                column.tip.size,
+                column.tip.size
+              )
+              column.tip.point={x:p(column.x) + 10,y: (rowHeight - column.tip.size) / 2}
+              ctx.fillText(column.title, x + column.tip.size +5, p(15))
+            }else{
+              ctx.fillText(column.title, p(column.x)  + this.getWidth(column.title)/2 + 10 , p(15))
+            }
             if(column.sort){
               const width = 10
               const height = 5
@@ -486,23 +538,23 @@
               const _height = height*2  + gap
               const x_offset = i(p(column.x)  + this.getWidth(column.title) + 20)
               const y_offset = i((this.rowHeight - _height)/2)
-
+              const offset = column.tip?column.tip.size : 0
               // 上三角
               ctx.beginPath();
               // ctx.fillStyle="#409eff"
               ctx.fillStyle= column.sort === 'up'?  '#409eff':"#c0c4cc"
-              ctx.moveTo(x_offset + width/2 , y_offset );
-              ctx.lineTo(x_offset , y_offset + height);
-              ctx.lineTo(x_offset + width,y_offset + height);
+              ctx.moveTo(x_offset + width/2 + offset , y_offset );
+              ctx.lineTo(x_offset + offset, y_offset + height);
+              ctx.lineTo(x_offset + width + offset,y_offset + height);
               ctx.closePath();
               ctx.fill();
 
               ctx.beginPath();
 
               ctx.fillStyle= column.sort === 'down'? '#409eff':"#c0c4cc"
-              ctx.moveTo(x_offset + width/2, y_offset + _height );
-              ctx.lineTo(x_offset , y_offset + height + gap);
-              ctx.lineTo(x_offset + width, y_offset + height + gap);
+              ctx.moveTo(x_offset + width/2 + offset, y_offset + _height );
+              ctx.lineTo(x_offset + offset, y_offset + height + gap);
+              ctx.lineTo(x_offset + width + offset, y_offset + height + gap);
               ctx.closePath();
               ctx.fill();
             }
@@ -675,31 +727,46 @@
     },
 
     // 表体单元格内容填充
-    paintBody (ctx, displayCells) {
-      const { paintText, i, p } = this
-      ctx.beginPath()
-      ctx.font = 'normal 12px PingFang SC'
-      ctx.fillStyle = this.textColor
-      const { displayColumns } = this.initDisplayItems()
-      for (const rows of displayCells) {
-        for (const item of rows) {
-          // 找到对应的 列
-          const column = this.columns.find(i=>i.key===item.key)
-          const _column = displayColumns.find(i=>i.key===item.key)
-          if (!item.fixed || this.fillWidth > 0) {
-            if (item.buttons) {
-              this.paintButton(ctx, item, i(item.x))
-            } else if (item.paintText && item.paintText.length > 0) {
-              if(column.center){
-                paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText)
-              }else{
-                paintText(ctx,  i(item.x )   + this.getWidth(item.paintText)/2 + 10 , i(15 + item.y), item.paintText)
+    paintBody(ctx, displayCells) {
+        const { paintText, i, p } = this
+        ctx.beginPath()
+        ctx.font = 'normal 12px PingFang SC'
+        ctx.fillStyle = this.textColor
+        // 显示的单元格
+        for (const rows of displayCells) {
+          for (const item of rows) {
+            // 找到对应的 列
+            const column = this.columns.find(i=>i.key===item.key)
+            if (!item.fixed || this.fillWidth > 0) {
+              if (item.buttons) {
+                this.paintButton(ctx, item, i(item.x))
+              } else if (item.paintText && item.paintText.length > 0) {
+                if(column.center){
+                  if(column.isImage){
+
+                    // item.timer = setTimeout(() =>{
+                    //   const img = new Image()
+                    //   img.src = item.paintText[0]
+                    //   img.onload =()=>{
+                    //     // ctx.clearRect(i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20);
+                    //     // ctx.drawImage(img, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
+                    //   }
+                    //   img.onerror = ()=>{
+                    //     // ctx.drawImage(this.imgLoadingFail, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
+                    //   }
+                    // },300)
+                  }else{
+                    paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText,item,column)
+                  }
+                }else{
+                  paintText(ctx,  i(item.x )   + this.getWidth(item.paintText)/2 + 10 , i(15 + item.y), item.paintText, item,column)
+                }
               }
             }
           }
         }
-      }
-      ctx.stroke()
+        ctx.stroke()
+
     },
 
     // 获取字符串宽度
@@ -714,7 +781,9 @@
     },
 
     // 表体单元格内容填充 - 文本填充
-    paintText (ctx, x, y, row) {
+    paintText (ctx, x, y, row,item,column) {
+      // console.log('%c [  ]-739', 'font-size:13px; background:pink; color:#bf2c9f;', row)
+
       for (let b = 0; b < row.length; b += 1) {
         ctx.fillText(row[b], x, y + (b * 18))
       }

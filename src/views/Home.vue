@@ -2,7 +2,7 @@
  * @Author: shufei 1017981699@qq.com
  * @Date: 2022-06-24 11:12:31
  * @LastEditors: shufei
- * @LastEditTime: 2022-06-30 16:28:01
+ * @LastEditTime: 2022-07-04 16:26:13
  * @FilePath: \canvas-table-vue\src\views\Home.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -12,7 +12,7 @@
       ref="VueCanvaTable"
       :customComponentKeys="customComponentKeys"
       :allFixedCells="allFixedCells"
-      :grid-data="data"
+      :dataSource="data"
       :columns="columns"
       :showCheckbox="showCheckbox"
       :columnSet="columnSet"
@@ -20,6 +20,7 @@
       @sort="sort"
       @focus="focus"
       @updateValue="update"
+      @columnWidthChange="columnWidthChange"
     >
       <!-- 底部选择商品组件 -->
       <template #footer>
@@ -66,12 +67,21 @@ export default {
     VueCanvaTable
   },
   data() {
+    const tip = new Image()
+    tip.src = require('../components/VueCanvaTable/images/tip.png')
     const columns = [
       {
         title: "品牌",
         key: "brandName",
         width: 80,
         center: true
+      },
+       {
+        title: "图片",
+        key: "goodsCover",
+        width: 48,
+        center: true,
+        isImage:true
       },
       {
         title: "商品名称",
@@ -109,14 +119,24 @@ export default {
         key: "customerRemarks",
         width: 150,
         sort: "default",
-        isCloumnBg: true
+        isCloumnBg: true,
+        tip:{
+          img:tip,
+          size:14,
+          desc:'覆盖导入：采用覆盖导入，将清除已导入的全部数据，以这次数据为准重新导入。注意：当已经存在业务单据时，不允许再进行覆盖导入。差异导入：采用差异导入，系统会将本次获取的数据同之前导入的数据进行对比，只导入没有导入过的新数据。'
+        }
       },
       {
         title: "采购价(元)",
         key: "purchasePrice",
         type: "number",
         width: 150,
-        isTotal: true
+        isTotal: true,
+        tip:{
+          img:tip,
+          size:14,
+          desc:'上次交易金额=销售折后税后金额-销售单整单优惠金额，已连接第三方ERP时，上次交易金额=最近一次销售单的销售金额，包括销售单和零售单'
+        }
       },
       {
         title: "销售价(元)",
@@ -174,12 +194,13 @@ export default {
     for (let i = 0; i < 100; i += 1) {
       this.data1.push({
         brandName: `博世${i}`,
+        goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
         goodsName: `电钻${i}`,
         sn: `SDFSD${i}`,
         materialNo: i + 1,
         unit: "个",
         requiredQuantity: 10,
-        customerRemarks: `测试测试${i}`,
+        customerRemarks: `测试测试测试测测测测测测测测测测测测试测试${i}`,
         purchasePrice: 10.2,
         salePrice: 12.3,
         shipDesc: 10,
@@ -193,6 +214,17 @@ export default {
     });
   },
   methods: {
+    /**
+     * @description 列宽改变
+     * @param { String } key 改变列宽的key
+     * @param { Number } diff 改变的差值
+     */
+    columnWidthChange(key, diff) {
+      const item = this.columns.find(i=>i.key == key)
+      if(item) {
+        item.width = item.width + diff
+      }
+    },
     /**
      * @description 排序
      * @param {Object} item :点击的排序对象

@@ -465,7 +465,7 @@
           if (cell.renderButton) {
             cell.buttons = column.renderButton(this.data[cell.rowIndex], cell.rowIndex)
           }
-                  const cellClone = Object.assign({}, cell, { x: column.x, y: row.y, width: cell.width + fillWidth, height: row.height }) //eslint-disable-line
+          const cellClone = Object.assign({}, cell, { x: column.x, y: row.y, width: cell.width + fillWidth, height: row.height }) //eslint-disable-line
           cellTemp.push(cellClone)
         }
         temp.push(cellTemp)
@@ -557,21 +557,21 @@
     },
 
     getTextLine (ctx, text, width) {
-      if (!text && text !== 0) {
-        return null
-      }
-      const chr = `${text}`.split('')
-      let temp = ''
-      const row = []
-      for (let a = 0; a < chr.length; a += 1) {
-        if (ctx.measureText(temp).width >= width - 20) {
-          row.push(temp)
-          temp = ''
-        }
-        temp += chr[a]
-      }
-      row.push(temp)
-      return row
+      if (!text && text !== 0) return null
+      // 文字内容超出省略
+      return this.getWidth(text)>=width-20? [String(text).slice(0,Math.round((width-20)/12)-1)+'...'] : [text]
+      // const chr = `${text}`.split('')
+      // let temp = ''
+      // const row = []
+      // for (let a = 0; a < chr.length; a += 1) {
+      //   if (ctx.measureText(temp).width >= width - 20) {
+      //     row.push(temp)
+      //     temp = ''
+      //   }
+      //   temp += chr[a]
+      // }
+      // row.push(temp)
+      // return row
     },
 
     getCellAt (x, y) {
@@ -583,6 +583,19 @@
         }
       }
       return null
+    },
+
+    paintFirstColumnCellHover(cell){
+      if (cell) {
+        this.fisrtCell = cell
+        this.fisrtCellHover = {
+          cellX: cell.x,
+          cellY: cell.y,
+          rowIndex: this.fisrtCell.rowIndex,
+          offset: { ...this.offset }
+        }
+        this.rePainted()
+      }
     },
 
     getCheckboxAt (x, y) {

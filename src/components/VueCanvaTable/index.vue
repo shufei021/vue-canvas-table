@@ -11,6 +11,7 @@
       <!-- 自定义组件 -->
       <slot name="footer"></slot>
     </div>
+
     <!-- 单元格 自定义组件 -->
     <div
       class="input-content custom"
@@ -18,6 +19,7 @@
       :style="inputStyles">
       <slot name="cell"></slot>
     </div>
+
     <!-- 单元格正常输入编辑  -->
     <div
       class="input-content"
@@ -30,10 +32,12 @@
       @keydown.enter.prevent
       @keydown.esc.prevent
       @keyup="handleInputKeyup">
-
     </div>
 
-    <div class="horizontal-container" :style="{ width: `${width - scrollerWidth + 2}px` }" @click="scroll($event, 0)">
+    <div class="horizontal-container"
+      :style="{ width: `${width - scrollerWidth + 2}px` }"
+      @click="scroll($event, 0)"
+    >
       <div
         class="scroll-bar-horizontal"
         ref="horizontal"
@@ -43,6 +47,7 @@
           left: horizontalBar.x + 'px',
         }">
         <div
+          class="horizontalBar"
           :style="
             horizontalBar.move
               ? 'background-color:#a1a1a1;'
@@ -58,6 +63,7 @@
         @mousedown="dragMove($event, 1)"
         :style="{ height: verticalBar.size + 'px', top: verticalBar.y + 'px' }">
         <div
+          class="vertical"
           :style="
             verticalBar.move
               ? 'background-color:#a1a1a1;'
@@ -67,6 +73,19 @@
     </div>
 
     <canvas ref="canvas" :width="width" :height="height" :style="`width:${width}px;height:${height}px;`"></canvas>
+
+    <!-- 列宽拖动线 -->
+    <div class="cloumn-line" :style="{ height: `${height - scrollerWidth + 2}px`,...cloumnLineStyle }" ></div>
+
+    <!-- 表头标题提示弹框 -->
+    <div class="tooltip" :style="tooltipStyle">
+        <div class="tooltip-content">
+            <div class="tooltip-arrow"></div>
+            <div class="tooltip-inner">
+                <span style="text-align: center; display: inline-block;"> {{tooltip}} </span>
+            </div>
+        </div>
+    </div>
   </div>
 </template>
 
@@ -84,7 +103,7 @@ export default {
   components: { checkbox },
   props: {
     columns: Array,
-    gridData: Array,
+    dataSource: Array,
     type: {
       type: String,
       default: 'default'
@@ -136,19 +155,36 @@ export default {
       isPaste: false,
       initRows: 300,
       isTotalVisible: false,
-      focusCell:null
+      focusCell:null,
+      cloumnLineStyle:{
+        left:'-10000px'
+      },
+      tooltipStyle:{
+        left:'-10000px',
+        top:'-10000px'
+      },
+      tooltip:''
     }
   },
   watch: {
-    gridData (value) {
+    dataSource (value) {
       this.data = [...value]
       this.initCanvas()
       this.painted(this.initDisplayItems())
       this.initEvent()
+    },
+    // 列宽改变需要重新初始化
+    columns:{
+      handler(){
+        this.initCanvas()
+        this.painted(this.initDisplayItems())
+        this.initEvent()
+      },
+      deep:true
     }
   },
   created () {
-    this.data = [...this.gridData]
+    this.data = [...this.dataSource]
     this.$on('updateNoSave', (data) => {
       this.saveItems(data, false)
     })
@@ -522,6 +558,13 @@ export default {
   min-width: 714px;
 }
 
+.cloumn-line{
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 0;
+  border-left: 1px dashed #378efb;
+}
 .horizontal-container {
   position: absolute;
   height: 18px;
@@ -704,5 +747,61 @@ canvas {
 
 .footer {
   box-sizing: border-box;
+}
+
+.tooltip{
+    position: absolute;
+    left: -10000px;
+    top: -10000px;
+    width: 1px;
+    height: 1px;
+}
+.tooltip-content{
+    width: 186px;
+    height: 38px;
+    position: absolute;
+    background-color: #fff;
+    left:-92px;
+    top: 10px;
+}
+.tooltip-arrow{
+    position: absolute;
+    display: block;
+    width: 13px;
+    height: 13px;
+    overflow: hidden;
+    background: transparent;
+    pointer-events: none;
+    left: 86px;
+    top: -13px;
+}
+.tooltip-arrow:before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+    width: 5px;
+    height: 5px;
+    margin: auto;
+    background-color: rgba(0,0,0,.75);
+    content: "";
+    pointer-events: auto;
+    transform: translateY(6px) rotate(45deg);
+    box-shadow: -3px -3px 7px rgb(0 0 0 / 7%);
+}
+.tooltip-inner{
+    min-width: 30px;
+    min-height: 32px;
+    padding: 6px 8px;
+    color: #fff;
+    text-align: left;
+    text-decoration: none;
+    word-wrap: break-word;
+    background-color: rgba(0,0,0,.75);
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+    font-size: 12px;
 }
 </style>
