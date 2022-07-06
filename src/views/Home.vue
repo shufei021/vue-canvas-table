@@ -11,7 +11,6 @@
       @sort="sort"
       @focus="focus"
       @updateValue="update"
-      @columnWidthChange="columnWidthChange"
     >
       <!-- 底部选择商品组件 -->
       <template #footer>
@@ -204,17 +203,6 @@ export default {
     });
   },
   methods: {
-    /**
-     * @description 列宽改变
-     * @param { String } key 改变列宽的key
-     * @param { Number } diff 改变的差值
-     */
-    columnWidthChange(key, diff) {
-      const item = this.columns.find(i=>i.key == key)
-      if(item) {
-        item.width = item.width + diff
-      }
-    },
     /**
      * @description 排序
      * @param {Object} item :点击的排序对象

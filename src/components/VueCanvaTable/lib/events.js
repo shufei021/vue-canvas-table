@@ -139,10 +139,12 @@ export default {
       if(headerSortCell){
         const cache = [...this.allColumns]
         const item = cache.find(i=>i.key===headerSortCell.key)
+        const it = this.columns.find(i=>i.key===headerSortCell.key)
         if(item) {
           this.$emit('sort',item, [...cache])
           setTimeout(() => {
             item.sort =['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
+            it.sort = ['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
             this.allColumns = cache
             this.rePainted()
           })
@@ -336,7 +338,6 @@ export default {
     hoverFirstColumnCell(x,y){
       if(x>0 && x< this.serialWidth){
         const item = this.displayRows.find(i=>y<i.y+i.height)
-        console.log('%c [ this.displayRows ]-339', 'font-size:13px; background:pink; color:#bf2c9f;', this.displayRows,y)
         if(item){
           for (const rows of this.displayCells) {
             for (const cell of rows) {
@@ -480,7 +481,11 @@ export default {
         const diff = this.i(parseInt(this.cloumnLineStyle.left) - x - width)
         const dispalyCloumnItem = this.displayColumns.find(i=>i.key === key)
         const allCloumnItem = this.allColumns.find(i=>i.key === key)
-        if(dispalyCloumnItem && allCloumnItem)this.$emit('columnWidthChange',key,diff)
+        if(dispalyCloumnItem && allCloumnItem) {
+          const item = this.columns.find(i=>i.key == key)
+          if(item) item.width = item.width + diff
+          this.$emit('columnWidthChange',{key,diff} )
+        }
       }
       // 重置列宽虚线为隐藏
       this.cloumnLineStyle.left =  '-10000px!important'

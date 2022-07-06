@@ -133,7 +133,6 @@
       this.paintHeader(ctx, displayColumns)
 
 
-
       // 绘制首列
       this.paintSerial(ctx, displayRows)
 
@@ -322,7 +321,15 @@
     paintSerial (ctx, displayRows) {
       const { p, offset, bodyHeight, rowFocus, serialWidth } = this
 
-
+      ctx.fillStyle = this.fillColumnColor
+      ctx.save()
+      if (offset.x !== 0) {
+        ctx.shadowBlur = 10
+        ctx.shadowOffsetX = 3
+        ctx.shadowColor = this.shadowColor
+      }
+      ctx.fillRect(0, 0, serialWidth, bodyHeight)
+      ctx.restore()
       // 首列
       ctx.lineWidth = 1
       for (const item of displayRows) {
@@ -336,16 +343,14 @@
 
             if(this.hoverCell && this.hoverCell.y === item.y){
 
-              // console.log('%c [  ]-439', 'font-size:13px; background:pink; color:#bf2c9f;', )
             }
           }else if (this.fisrtCell && item.y=== this.fisrtCell.y){
-            console.log('%c [ this.fisrtCell ]-344', 'font-size:13px; background:pink; color:#bf2c9f;', this.fisrtCell)
+            // console.log('%c [ this.fisrtCell ]-344', 'font-size:13px; background:pink; color:#bf2c9f;', this.fisrtCell)
             // ctx.fillRect(-1, item.y + 1, serialWidth + 1, item.height)
           }
 
           ctx.fillStyle = this.textColor
           ctx.font = 'normal 12px PingFang SC'
-
           ctx.fillText(`${item.rowIndex + 1}`, serialWidth / 2, 15 + item.y)
           ctx.moveTo(p(0), p(item.y + item.height))
           ctx.lineTo(p(serialWidth), p(item.y + item.height))

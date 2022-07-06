@@ -4,6 +4,7 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 
+import util from "rutilsjs"
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
@@ -13,3 +14,5 @@ new Vue({
   components: { App },
   template: '<App/>'
 })
+
+Vue.prototype.util = util
