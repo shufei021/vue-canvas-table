@@ -11,7 +11,7 @@
 
 
 import { throttle, debounce } from "../utils"
-
+import hover from "./event/hover"
 export default {
   data () {
     return {
@@ -20,11 +20,6 @@ export default {
       pixelRatio: 1,
       shiftDown: false,
       ctrlDown: false
-    }
-  },
-  watch: {
-    retract () {
-      this.handleResize()
     }
   },
   mounted () {
@@ -99,55 +94,16 @@ export default {
         if (x > this.maxPoint.x && y > this.maxPoint.y && x < this.width && y < this.height) {
           this.fullScreen()
         }
-
-        if (this.showCheckbox) {
-          if (x > this.serialWidth && x < this.originPoint.x) {
-            const checkbox = this.getCheckboxAt(x, y)
-            const { serialWidth, checkboxWidth, checkWdith } = this
-            const checkboxX = serialWidth + ((checkboxWidth - checkWdith) / 2) // 绘制复选框居中的 x 左边
-            if (checkbox) {
-              if (this.selected.indexOf(checkbox.rowIndex) !== -1) {
-                this.selected.splice(this.selected.findIndex((item) => { if (item === checkbox.rowIndex) { return true } return false }), 1)
-              } else {
-                this.selected.push(checkbox.rowIndex)
-              }
-              this.rePainted()
-            } else if (x > checkboxX && x < checkboxX + checkWdith && y > 5 && y < 25) {
-              if (this.selected.length === this.allRows.length) {
-                this.selected = []
-              } else {
-                this.selected = []
-                for (const row of this.allRows) {
-                  this.selected.push(row.rowIndex)
-                }
-              }
-              this.rePainted()
-            } else if (this.downWidth && x > checkboxX + 25 && x < checkboxX + 25 + this.downWidth && y > (this.rowHeight - this.downWidth) / 2 && y < ((this.rowHeight - this.downWidth) / 2) + this.downWidth) {
-              //
-              this.$emit('down')
-            }
-            return
+        if (!this.showColumnSet) {
+          const sx = (this.serialWidth - this.settingWidth) / 2
+          const ex = sx + this.settingWidth
+          const sy = (this.rowHeight - this.settingHeight) / 2
+          const ey = sy + this.settingHeight
+          if (x > sx && x < ex && y > sy && y < ey) {
+            alert('表头字段设置')
           }
-        }
-
-        if (this.columnSet) {
-          if (!this.showColumnSet) {
-            // console.log('%c [ x ]-106', 'font-size:13px; background:pink; color:#bf2c9f;', x)
-            // console.log('%c [ y ]-106', 'font-size:13px; background:pink; color:#bf2c9f;', y)
-            // console.log('%c [ serialWidth ]-361', 'font-size:13px; background:pink; color:#bf2c9f;', this.serialWidth)
-            // console.log('%c [ rowHeight ]-351', 'font-size:13px; background:pink; color:#bf2c9f;', this.rowHeight)
-            const sx = (this.serialWidth - this.settingWidth) / 2
-            const ex = sx + this.settingWidth
-            const sy = (this.rowHeight - this.settingHeight) / 2
-            const ey = sy + this.settingHeight
-            if (x > sx && x < ex && y > sy && y < ey) {
-              console.log('%c [ 点击到图标了 ]-115', 'font-size:13px; background:pink; color:#bf2c9f;')
-              // this.showColumnSet = true
-              return
-            }
-          } else {
-            this.handleColumnSet()
-          }
+        } else {
+          this.handleColumnSet()
         }
 
         const button = this.getButtonAt(x, y)
@@ -277,6 +233,7 @@ export default {
         // 列宽
         if(this.lineCell && this.isDown) {
           this.cloumnLineStyle.left = (this.i(evt.offsetX)===-1? this.cloumnLineStyle.left : this.i(evt.offsetX)) + 'px'
+          return
         }
         // 表格左上角图标如果被鼠标移上去了，就改变手型为手型，否则就改为默认
         const x = evt.offsetX
@@ -297,7 +254,7 @@ export default {
           if(!(this.lineCell && this.isDown))this.lineCell = null
         }else if(lineCell && !this.isDown){
           this.lineCell = lineCell
-          document.querySelector('.excel-table').style.cursor = 'e-resize'
+          document.querySelector('.excel-table').style.cursor = 'col-resize'
         } else {
           this.sortCell = null
           if(!(this.lineCell && this.isDown)) this.lineCell = null
@@ -306,22 +263,7 @@ export default {
 
 
         // row 的 hover 效果
-        const cell = this.getCellAt(eX, eY)
-        if (evt.target.tagName !== 'CANVAS') {
-          this.hoverCell = null
-          this.rowHover = null
-          this.rePainted()
-        } else {
-          if (cell) {
-            this.paintBodyRowHover(cell)
-          } else {
-            this.hoverCell = null
-            this.rowHover = null
-            // this.rePainted()
-            const cell = this.hoverFirstColumnCell(evt)
-            cell && this.paintFirstColumnCellHover(cell)
-          }
-        }
+        hover.call(this,evt)
         // 表头前面图标hover
         const headerCellInfo = this.getHeadColumnCell(evt)
         if(headerCellInfo){
@@ -381,14 +323,20 @@ export default {
             this.offset.x = -this.horizontalBar.x / this.horizontalBar.k
             requestAnimationFrame(this.rePainted)
           }
+        }else{
+          // canvas 和 滚动条外的 移动
+          // console.log('%c [ out ]-342', 'font-size:13px; background:pink; color:#bf2c9f;', )
+          this.hoverCell = null
+          this.rowHover = null
+          // this.rePainted()
         }
-        // console.log('%c [ evt ]-385', 'font-size:13px; background:pink; color:#bf2c9f;',this.isDown, evt.target.className)
       }
     }, 16),
 
-    hoverFirstColumnCell({offsetX:x, offsetY:y}){
+    hoverFirstColumnCell(x,y){
       if(x>0 && x< this.serialWidth){
-        const item = this.displayRows.find(i=>y<i.y)
+        const item = this.displayRows.find(i=>y<i.y+i.height)
+        console.log('%c [ this.displayRows ]-339', 'font-size:13px; background:pink; color:#bf2c9f;', this.displayRows,y)
         if(item){
           for (const rows of this.displayCells) {
             for (const cell of rows) {

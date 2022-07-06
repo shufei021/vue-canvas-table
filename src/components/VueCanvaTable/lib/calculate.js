@@ -10,9 +10,7 @@
     const scrollerWidth = 20
     const height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
     let originPointX = serialWidth
-    if (this.showCheckbox) {
-      originPointX += checkboxWidth
-    }
+
     const bottomFixedRows = 2
     return {
       width: 0,
@@ -55,9 +53,6 @@
     }
   },
   watch: {
-    showCheckbox () {
-      this.initSize()
-    },
     leftHeight () {
       this.initSize()
     }
@@ -79,45 +74,7 @@
   },
   methods: {
     fullScreen () {
-      // TODO fullscrean
 
-      // this.$refs.canvas.style.position = 'fixed'
-      // this.$refs.canvas.style.top = 0
-      // this.$refs.canvas.style.left = 0
-      // this.$refs.canvas.style.right = 0
-      // this.$refs.canvas.style.bottom = 0
-      // this.$refs.canvas.style.zIndex = 1000
-
-      // this.width = window.innerWidth
-      // this.height = window.innerHeight
-
-      // if (this.showCheckbox) {
-      //     this.selected = [...this.initSelected]
-      //     this.originPoint.x = this.serialWidth + this.checkboxWidth
-      //     this.bodyWidth += this.checkboxWidth
-      // } else {
-      //     this.originPoint.x = this.serialWidth
-      //     this.bodyWidth -= this.checkboxWidth
-      // }
-      // this.bodyWidth = this.originPoint.x
-      // let columnCount = 0
-      // for (const column of this.allColumns) {
-      //     if (column.checked) {
-      //         this.bodyWidth += column.width ? column.width : 100
-      //         columnCount += 1
-      //     }
-      // }
-      // this.fillWidth = 0
-      // if (this.bodyWidth < this.width - this.scrollerWidth) {
-      //     this.fillWidth = (this.width - this.bodyWidth - this.scrollerWidth) / columnCount
-      //     this.bodyWidth = this.width - this.scrollerWidth
-      // }
-
-      // this.setBodyHeight(this.allRows, this.originPoint)
-      // this.setFixedWidth(this.allColumns, this.fillWidth)
-      // this.setMaxpoint(this.width, this.height, this.fixedWidth, this.scrollerWidth, this.fillWidth)
-      // this.resetScrollBar(this.maxPoint, this.bodyWidth, this.bodyHeight, this.fixedWidth)
-      // requestAnimationFrame(this.rePainted)
     },
 
     // 初始化尺寸大小
@@ -126,16 +83,10 @@
         this.width = this.$refs.grid.offsetWidth - 2
         this.height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
 
-        if (this.showCheckbox) {
-          if (this.initSelected) {
-            this.selected = [...this.initSelected]
-          }
-          this.originPoint.x = this.serialWidth + this.checkboxWidth
-          this.bodyWidth += this.checkboxWidth
-        } else {
-          this.originPoint.x = this.serialWidth
-          this.bodyWidth -= this.checkboxWidth
-        }
+
+        this.originPoint.x = this.serialWidth
+        this.bodyWidth -= this.checkboxWidth
+
         this.bodyWidth = this.originPoint.x
         let columnCount = 0
         for (const column of this.allColumns) {
@@ -234,13 +185,11 @@
           let textLine
           if (column.renderText) {
             text = column.renderText(item)
-          } else if (column.renderButton) {
-            buttons = column.renderButton(this.data[rowIndex], rowIndex)
           } else {
             text = item[column.key]
           }
           if (text || text === 0) {
-            textLine = getTextLine(ctx, text, column.width ? column.width : 100)
+            textLine = getTextLine(ctx, text, column.width ? column.width : 100,column)
             let textLineCount = 0
             if (textLine) {
               textLineCount = textLine.length
@@ -264,7 +213,6 @@
               readOnly: column.readOnly === true,
               buttons,
               renderText: column.renderText,
-              renderButton: column.renderButton,
               rowData: item,
               type: column.type
             })
@@ -280,7 +228,6 @@
               readOnly: column.readOnly === true,
               buttons,
               renderText: column.renderText,
-              renderButton: column.renderButton,
               rowData: item,
               type: column.type
             })
@@ -331,13 +278,11 @@
           let textLine
           if (column.renderText) {
             text = column.renderText(item)
-          } else if (column.renderButton) {
-            buttons = column.renderButton(this.data[rowIndex], rowIndex)
-          } else {
+          }  else {
             text = item[column.key]
           }
           if (text || text === 0) {
-            textLine = getTextLine(ctx, text, column.width ? column.width : 100)
+            textLine = getTextLine(ctx, text, column.width ? column.width : 100,column)
             let textLineCount = 0
             if (textLine) {
               textLineCount = textLine.length
@@ -359,7 +304,6 @@
             readOnly: column.readOnly === true,
             buttons,
             renderText: column.renderText,
-            renderButton: column.renderButton,
             rowData: item,
             type: column.type
           })
@@ -425,7 +369,7 @@
       }
       if (cell) {
         let maxHeight = 0
-        const textLine = getTextLine(ctx, text, cell.width)
+        const textLine = getTextLine(ctx, text, cell.width,cell)
         let textLineCount = 0
         if (textLine) {
           textLineCount = textLine.length
@@ -462,9 +406,7 @@
           if (cell.renderText) {
             cell = setCellRenderText(cell)
           }
-          if (cell.renderButton) {
-            cell.buttons = column.renderButton(this.data[cell.rowIndex], cell.rowIndex)
-          }
+
           const cellClone = Object.assign({}, cell, { x: column.x, y: row.y, width: cell.width + fillWidth, height: row.height }) //eslint-disable-line
           cellTemp.push(cellClone)
         }
@@ -479,7 +421,7 @@
       const row = this.allRows[cell.rowIndex]
       if (text) {
         let maxHeight = 0
-        const textLine = this.getTextLine(this.ctx, text, cell.width)
+        const textLine = this.getTextLine(this.ctx, text, cell.width,cell)
         let textLineCount = 0
         if (textLine) {
           textLineCount = textLine.length
@@ -508,9 +450,7 @@
         const fixedCellTemp = []
         for (const row of displayRows) {
           const fixed = fixedCell[row.rowIndex]
-          if (fixed.renderButton) {
-            fixed.buttons = fixed.renderButton(this.data[fixed.rowIndex], fixed.rowIndex)
-          }
+
           const fixedCellClone = Object.assign({}, fixed, { y: row.y, width: fixed.width + fillWidth, height: row.height })
           fixedCellTemp.push(fixedCellClone)
         }
@@ -556,8 +496,9 @@
       return temp
     },
 
-    getTextLine (ctx, text, width) {
+    getTextLine (ctx, text, width,cell) {
       if (!text && text !== 0) return null
+      if(cell.isImage===true)return [text]
       // 文字内容超出省略
       return this.getWidth(text)>=width-20? [String(text).slice(0,Math.round((width-20)/12)-1)+'...'] : [text]
       // const chr = `${text}`.split('')

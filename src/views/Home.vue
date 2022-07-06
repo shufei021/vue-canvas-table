@@ -1,11 +1,3 @@
-<!--
- * @Author: shufei 1017981699@qq.com
- * @Date: 2022-06-24 11:12:31
- * @LastEditors: shufei
- * @LastEditTime: 2022-07-04 16:26:13
- * @FilePath: \canvas-table-vue\src\views\Home.vue
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
--->
 <template>
   <div class="demo-wrap">
     <VueCanvaTable
@@ -14,7 +6,6 @@
       :allFixedCells="allFixedCells"
       :dataSource="data"
       :columns="columns"
-      :showCheckbox="showCheckbox"
       :columnSet="columnSet"
       :left-height="200"
       @sort="sort"
@@ -162,7 +153,6 @@ export default {
     const emptyWidth = window.innerWidth - columnsWidth - 57;
     return {
       columnSet: true,
-      showCheckbox: false,
       data: [],
       allFixedCells: [
         // { title: "品牌", key: "brandName", width: 80 },
@@ -170,20 +160,20 @@ export default {
       ],
       columns: [
         ...columns,
-        { title: "", width: emptyWidth, key: "empty" }
-        // {
-        //     title: '操作',
-        //     width: 70,
-        //     fixed: true,
-        //     renderButton(rowData, index) {
-        //         return [{
-        //             title: '操作',
-        //             click() {
-        //                 console.log(rowData, index)
-        //             },
-        //         }]
-        //     },
-        // },
+        { title: "", width: emptyWidth, key: "empty" },
+        {
+            title: '操作',
+            width: 70,
+            fixed: true,
+            renderButton(rowData, index) {
+                return [{
+                    title: '操作',
+                    click() {
+                        console.log(rowData, index)
+                    },
+                }]
+            },
+        },
       ],
       activeColumnsKey: "",
       customComponentKeys: ["customerRemarks", "brandName"]

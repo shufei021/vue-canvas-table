@@ -1,5 +1,6 @@
 <template>
   <div ref="grid" class="excel-table" :style="`height:${height + 2}px;`" @paste="doPaste">
+
     <!-- footer total 底部固定统计 -->
     <div
       class="input-content footer"
@@ -94,23 +95,16 @@ import painted from './lib/painted'
 import events from './lib/events'
 import calculate from './lib/calculate'
 import scroller from './lib/scroller'
-import checkbox from './lib/checkbox.vue'
-import history from './lib/history'
 
 // type: default,noextent
 export default {
-  mixins: [calculate, painted, events, scroller, history],
-  components: { checkbox },
+  mixins: [calculate, painted, events, scroller],
   props: {
     columns: Array,
     dataSource: Array,
     type: {
       type: String,
       default: 'default'
-    },
-    showCheckbox: {
-      type: Boolean,
-      default: false
     },
     leftHeight: Number,
     showDot: Object,
@@ -152,7 +146,6 @@ export default {
       ratio: 1,
       showTip: false,
       tipMessage: '',
-      isPaste: false,
       initRows: 300,
       isTotalVisible: false,
       focusCell:null,
@@ -179,6 +172,9 @@ export default {
         this.initCanvas()
         this.painted(this.initDisplayItems())
         this.initEvent()
+        setTimeout(() => {
+          this.rePainted()
+        },16)
       },
       deep:true
     }
@@ -427,13 +423,7 @@ export default {
             value = null
           }
         }
-        if (history) {
-          this.pushState({
-            type: 'edit',
-            before: { ...data, value: this.data[index][key] },
-            after: { ...data }
-          })
-        }
+
         this.data[index][key] = value
         this.setCellItemByKey(index, key, value)
         this.rePainted()
