@@ -320,7 +320,7 @@
     // 首列 文字填充
     paintSerial (ctx, displayRows) {
       const { p, offset, bodyHeight, rowFocus, serialWidth } = this
-
+      // 设置蒙层
       ctx.fillStyle = this.fillColumnColor
       ctx.save()
       if (offset.x !== 0) {
@@ -555,6 +555,7 @@
           ctx.fillStyle = this.selectRowColor
           ctx.fillRect(p(-1), p(item.y), i(maxPoint.x), i(item.height))
         }else{
+          // 列背景色设置
           for(const column of bgColumns){
             ctx.fillStyle = '#fafafa'
             ctx.fillRect(
@@ -607,16 +608,7 @@
               } else if (item.paintText && item.paintText.length > 0) {
                 if(column.center){
                   if(column.isImage){
-
-                      // const img = new Image()
-                      // img.src = item.paintText[0]
-                      // img.onload =()=>{
-                      //   // ctx.clearRect(i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20);
-                      //   ctx.drawImage(img, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
-                      // }
-                      // img.onerror = ()=>{
-                      //   // ctx.drawImage(this.imgLoadingFail, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
-                      // }
+                    ctx.drawImage(item.rowData.image, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
                   }else{
                     paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText,item,column)
                   }
@@ -628,7 +620,6 @@
           }
         }
         ctx.stroke()
-
     },
 
     // 获取字符串宽度

@@ -258,6 +258,21 @@ export default {
           this.lineCell = lineCell
           document.querySelector('.excel-table').style.cursor = 'col-resize'
         } else {
+          const cell = this.getCellAt( eX, eY)
+          if(cell){
+            if(cell.key === "goodsCover" && cell.rowData && cell.rowData.image&&cell.rowData.image.state){
+              if(
+                x>=cell.x-(cell.width-20)/2 &&
+                x<=cell.x+(cell.width-20)/2+10 &&
+                y>=cell.y - 10 &&
+                y<=cell.y + ((cell.height-20)/2)
+              ){
+                // 有问题
+                console.log(cell)
+              }
+            }
+          }
+          // console.log('%c [ x,y ]-261', 'font-size:13px; background:pink; color:#bf2c9f;',this.getCellAt( eX, eY) && this.getCellAt( eX, eY).rowData.image.state)
           this.sortCell = null
           if(!(this.lineCell && this.isDown)) this.lineCell = null
           if(!(this.lineCell && this.isDown)) document.querySelector('.excel-table').style.cursor = 'default'
@@ -288,6 +303,11 @@ export default {
           }
         }
       }else{
+        this.tooltip = ''
+        this.tooltipStyle = {
+          left:'-10000px',
+          top:'-10000px'
+        }
         if(['vertical','horizontalBar'].includes(evt.target.className)){
 
           // 纵向滚动
@@ -355,8 +375,9 @@ export default {
     },
 
     getHeaderLineCell(x, y){
-      const cell = this.displayColumns.find(i=>this.i(i.width + i.x)-x>= -3 && this.i(i.width + i.x)-x<=3)
+      const cell = this.displayColumns.find(i=>this.i(i.width + i.x)-x>= -5 && this.i(i.width + i.x)-x<=5)
       if(cell && y>0 && y <this.rowHeight){
+        console.log('%c [ cell ]-360', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
         return cell
       }else{
         return null

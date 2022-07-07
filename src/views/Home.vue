@@ -52,13 +52,14 @@ const dateRangeRandom = function(d = new Date(), ft) {
   const r = ret[utils.rangeRandom(1, days)[0]] || dateRangeRandom();
   return r;
 };
+const tip = new Image()
+tip.src = require('../components/VueCanvaTable/images/tip.png')
 export default {
   components: {
     VueCanvaTable
   },
   data() {
-    const tip = new Image()
-    tip.src = require('../components/VueCanvaTable/images/tip.png')
+
     const columns = [
       {
         title: "品牌",
@@ -193,13 +194,25 @@ export default {
         purchasePrice: 10.2,
         salePrice: 12.3,
         shipDesc: 10,
-        createDate: dateRangeRandom()
+        createDate: dateRangeRandom(),
+        image:(()=>{
+          const img = new Image()
+          img.src = 'https://img1.baidu'+(Math.random() > 0.5?'1':'')+'.com/it/u=2029513305,2137933177&fm=253&app=138&size=w931&n=0&f=JPEG&fmt=auto?sec=1657299600&t=6b03a9cfb1b6734ecee601789050364f'
+          img.state = 1
+          img.onerror= ()=>{
+             img.state = 0
+            img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAA8lJREFUWEftVl1oHFUU/s7MJqQRNbHYokj8K/VBQY2IUpD681BsMUqUIrEU64MQ4u6cnQQNopiCEH82O2dmy4IPUUFKH6T4U0FRwSIVX6rQ1r8Hf1oQKtYHK4qyZubICTvbybKJE0kpSA5cds/c757z3XPPOfcSzrHQOfaPVQL/rwgw8yCA70Xk17y5tSAC5XL5oiRJniKiGwH0Alijqr1EtMaG/QdwRERuyToYHx+/PI7jCoAHmt//BvBtc3wH4ASA43EcH6vVaqa3ZAEBZj4M4CYAB5fYwYiInGyfHxsbW9vd3X01gKtU1X43AriGiDaqan8GPyUiu1O9RcDzvCEiegvALhF5NW8I8+CY+ZImsceI6EHHce6pVqvv2NoWAWaeAvBMX1+fOzU1leQxvFwMM18B4AcAu0XE/J0hUC6XJ1V1utFonF+v139frvEUz8x3A4gAfJ0kyQtRFB1K5+yYurq6flHVyTAMn2+PAAMICoXC+kql8vN/IeB53noi+imz9qCI3JHqpVJpk+M4nziOs71arb7eTmAUQB3AlSJy3CaZedgqIgiCp/MQYuZHAbyUwZ4SkXWZ6DwM4BUiujkIAkv4BUewS1Vfdl332pmZma98378rSZJ3AXSp6p4wDIs5SWiKU9V6GIZjqe553jQRTcZxvK5Wq51qJzCiqnuNnU2o6gcA+jJOXxORnTlJPERER4MgOJbFM/N+AHeKSKsss1UwDGC/qm4mon0ALu3g7ICIDOUh0QnDzF+oaiMMQ+uY85IlsA2A1aZ1sA1LOPlYRDZ3mh8dHe3v6enZoqp/icib7RhmbhDR20EQpB3zDIHmmX+Yc3dHReT6LNb3/ftV1VfVTc3v+0RkJMUUi8ULXNc9TUQvBkHweKcI3A7go5wEDHZCRKyxzEvTwecArA2n8qSITJvi+/6tSZJ8qqrFMAz3rAQBs3FaRFqJ6nneFiJ6L7uJJEmGoyh6g5kfATBLRENBEBxYKQJm50vXdbdb6ZqStvQMiZOO42yL49gqY9xxnBuq1eqRlSJghu6zxlUqla5zHOdZAPd2OMb3AcQArE33Z98L2SpYbg78GMfxoDUUZra1s3bjLZFD9iZwRGQgi8lex3Z3f5MzCf8sFAoXVyqVP5rZP6uqF+ZYe0hEbutIoHl+VgW2myVFROaJl8vl51T1iX/DZ+Z3iMjeRQl4nmdR8AFsBXDZIoa3iojdEZZwg0S0QVUtrPODiAaa+trM+t8AWBfd0W7zrL2KJyYmzpubmxtIkqQ3iqLPFovSWSOQ91hWCaxG4B9GTIgwQGH5cAAAAABJRU5ErkJggg=='
+          }
+          return img
+        })()
       });
     }
   },
   mounted() {
     this.$nextTick(() => {
-      this.data = this.data1;
+      setTimeout(() => {
+        this.data = this.data1;
+      },1000)
     });
   },
   methods: {
