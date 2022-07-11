@@ -2,12 +2,19 @@
  * 绘制
  */
  import { throttle } from "../utils"
+ import {drawAddAndReduceCell} from "../components/sort"
  export default {
   data () {
     const setting = new Image()
     setting.src = require('../images/setting.png')
     const imgLoadingFail = new Image()
     imgLoadingFail.src = require('../images/loading_fail.png')
+
+    const checkedOff = new Image()
+    checkedOff.src = require('../images/checkoff.png')
+
+    const checkedOn = new Image()
+    checkedOn.src = require('../images/checked.png')
     return {
       // 首行背景填充色
       fillColor: '#fafafa',
@@ -39,7 +46,9 @@
       // 复选框图标宽度
       checkWdith: 20,
       // 图片加载失败的默认图片
-      imgLoadingFail
+      imgLoadingFail, // 左上角
+      checkedOff,
+      checkedOn
     }
   },
   methods: {
@@ -341,20 +350,19 @@
             ctx.fillStyle = this.selectRowColor
             ctx.fillRect(-1, item.y + 1, serialWidth + 1, item.height)
 
-            if(this.hoverCell && this.hoverCell.y === item.y){
-
-            }
-          }else if (this.fisrtCell && item.y=== this.fisrtCell.y){
-            // console.log('%c [ this.fisrtCell ]-344', 'font-size:13px; background:pink; color:#bf2c9f;', this.fisrtCell)
-            // ctx.fillRect(-1, item.y + 1, serialWidth + 1, item.height)
+            drawAddAndReduceCell(ctx,item.y + 1)
+            ctx.moveTo(p(0), p(item.y + item.height))
+            ctx.lineTo(p(serialWidth), p(item.y + item.height))
+            ctx.stroke()
+          }else{
+            ctx.fillStyle = this.textColor
+            ctx.font = 'normal 12px PingFang SC'
+            ctx.fillText(`${item.rowIndex + 1}`, serialWidth / 2, 15 + item.y)
+            ctx.moveTo(p(0), p(item.y + item.height))
+            ctx.lineTo(p(serialWidth), p(item.y + item.height))
+            ctx.stroke()
           }
 
-          ctx.fillStyle = this.textColor
-          ctx.font = 'normal 12px PingFang SC'
-          ctx.fillText(`${item.rowIndex + 1}`, serialWidth / 2, 15 + item.y)
-          ctx.moveTo(p(0), p(item.y + item.height))
-          ctx.lineTo(p(serialWidth), p(item.y + item.height))
-          ctx.stroke()
         }
       }
       ctx.stroke()
@@ -610,7 +618,11 @@
                   if(column.isImage){
                     ctx.drawImage(item.rowData.image, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
                   }else{
-                    paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText,item,column)
+                    if(column.isGift){
+                      ctx.drawImage(item.rowData.gift==1? this.checkedOn : this.checkedOff, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
+                    }else{
+                      paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText,item,column)
+                    }
                   }
                 }else{
                   paintText(ctx,  i(item.x )   + this.getWidth(item.paintText)/2 + 10 , i(15 + item.y), item.paintText, item,column)

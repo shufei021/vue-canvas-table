@@ -11,6 +11,8 @@
       @sort="sort"
       @focus="focus"
       @updateValue="update"
+      @sortReduce="sortReduce"
+      @sortAdd="sortAdd"
     >
       <!-- 底部选择商品组件 -->
       <template #footer>
@@ -27,6 +29,8 @@
         </div>
       </template>
     </VueCanvaTable>
+    <!-- <a-button type="primary">添加100</a-button>
+    <a-button>删除1条</a-button> -->
   </div>
 </template>
 
@@ -73,6 +77,13 @@ export default {
         width: 48,
         center: true,
         isImage:true
+      },
+      {
+        center: true,
+        title: "赠品",
+        key: "gift",
+        width: 48,
+        isGift:true
       },
       {
         title: "商品名称",
@@ -161,19 +172,19 @@ export default {
       columns: [
         ...columns,
         { title: "", width: emptyWidth, key: "empty" },
-        {
-            title: '操作',
-            width: 70,
-            fixed: true,
-            renderButton(rowData, index) {
-                return [{
-                    title: '操作',
-                    click() {
-                        console.log(rowData, index)
-                    },
-                }]
-            },
-        },
+        // {
+        //     title: '操作',
+        //     width: 70,
+        //     fixed: true,
+        //     renderButton(rowData, index) {
+        //         return [{
+        //             title: '操作',
+        //             click() {
+        //                 console.log(rowData, index)
+        //             },
+        //         }]
+        //     },
+        // },
       ],
       activeColumnsKey: "",
       customComponentKeys: ["customerRemarks", "brandName"]
@@ -185,7 +196,9 @@ export default {
       this.data1.push({
         brandName: `博世${i}`,
         goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
+        goodsPreview:'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/400/h/400',
         goodsName: `电钻${i}`,
+        gift:Math.random() > 0.5?'1':'0',
         sn: `SDFSD${i}`,
         materialNo: i + 1,
         unit: "个",
@@ -197,7 +210,7 @@ export default {
         createDate: dateRangeRandom(),
         image:(()=>{
           const img = new Image()
-          img.src = 'https://img1.baidu'+(Math.random() > 0.5?'1':'')+'.com/it/u=2029513305,2137933177&fm=253&app=138&size=w931&n=0&f=JPEG&fmt=auto?sec=1657299600&t=6b03a9cfb1b6734ecee601789050364f'
+          img.src = 'https://test-1251330838.cos.ap-chengdu.myqcloud'+(Math.random() > 0.5?'1':'')+'.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40'
           img.state = 1
           img.onerror= ()=>{
              img.state = 0
@@ -273,17 +286,44 @@ export default {
         this.columns.map(i => i.key)[cell.cellIndex]
       );
       console.log(value);
+    },
+    sortReduce(cell){
+      this.data.splice(cell.rowIndex,1)
+      console.log(cell,'sortReduce')
+    },
+    sortAdd(cell){
+      console.log(cell,'sortAdd')
+
+      this.data.splice(cell.rowIndex+1,0,{
+        brandName: '',
+        goodsCover: '',
+        goodsPreview:'',
+        goodsName: ``,
+        sn: ``,
+        gift:'',
+        materialNo: '',
+        unit: "",
+        requiredQuantity: '',
+        customerRemarks: ``,
+        purchasePrice: '',
+        salePrice: '',
+        shipDesc: '',
+        createDate: '',
+        image:''
+      })
     }
   }
 };
 </script>
-<style>
+<style lang="less">
 body {
   margin: 0;
 }
 .demo-wrap{
   width: 1745px;
   height: 983px;
-  margin: 50px auto;
+  margin: 0px auto;
+  padding-top: 50px;
+  box-sizing: border-box;
 }
 </style>

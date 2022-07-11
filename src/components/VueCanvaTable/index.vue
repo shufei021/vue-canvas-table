@@ -87,6 +87,16 @@
             </div>
         </div>
     </div>
+
+    <!-- 图片侧边预览 -->
+    <div class="previe" ref="previe" @click="previeHandler" :style="previeStyle">
+      <div  style="" class="previe-content">
+          <div class="previe-arrow"></div>
+          <img :src="previeUrl" alt="" style="width: 100%;height: 100%;object-fit: contain;" />
+        </div>
+    </div>
+
+
   </div>
 </template>
 
@@ -156,15 +166,24 @@ export default {
         left:'-10000px',
         top:'-10000px'
       },
-      tooltip:''
+      tooltip:'',
+      previeStyle:{
+        left:'-10000px',
+        top:'-10000px'
+      },
+      previeUrl:''
     }
   },
   watch: {
     dataSource (value) {
+      console.log('%c [ dataSource改变了 ]-179', 'font-size:13px; background:pink; color:#bf2c9f;')
       this.data = [...value]
       this.initCanvas()
       this.painted(this.initDisplayItems())
       this.initEvent()
+      setTimeout(() => {
+        this.rePainted()
+      },16)
     },
     // 列宽改变需要重新初始化
     columns:{
@@ -206,6 +225,10 @@ export default {
     this.removeEvent()
   },
   methods: {
+
+    previeHandler(){
+      console.log(this.previeUrl,'previeUrl')
+    },
     doPaste () {
       this.isPaste = true
     },
@@ -536,10 +559,53 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="less">
 * {
   box-sizing: border-box;
   font-size: 12px;
+}
+
+// 图片预览
+.previe{
+  width:20px;
+  height:20px;
+  position:absolute;
+  cursor:pointer;
+  &:hover .previe-content{
+    display: block !important;;
+    transition:all 0.3s;
+  }
+  .previe-content{
+    width: 200px;
+    height: 200px;
+    padding: 12px 16px;
+    background-color: #fff;
+    background-clip: padding-box;
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0,0,0, 0.15);
+    box-sizing: content-box;
+    position: absolute;
+    left: 32px;
+    top: -103px;
+    display:none;
+    .previe-arrow{
+      position: absolute;
+      display: block;
+      width: 8.48528137px;
+      height: 8.48528137px;
+      background: transparent;
+      border-style: solid;
+      border-width: 4.24264069px;
+      top:50%;
+      left: -4px;
+      transform: translateY(-50%) rotate(45deg);
+      border-top-color: transparent;
+      border-right-color: transparent;
+      border-bottom-color: #fff;
+      border-left-color: #fff;
+      box-shadow: -3px 3px 7px rgba(0, 0, 0, 0.07);
+    }
+  }
 }
 
 .excel-table {
@@ -779,7 +845,7 @@ canvas {
     content: "";
     pointer-events: auto;
     transform: translateY(6px) rotate(45deg);
-    box-shadow: -3px -3px 7px rgb(0 0 0 / 7%);
+    box-shadow: -3px -3px 7px rgb(237,237,237);
 }
 .tooltip-inner{
     min-width: 30px;
@@ -791,7 +857,7 @@ canvas {
     word-wrap: break-word;
     background-color: rgba(0,0,0,.75);
     border-radius: 2px;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+    // box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
     font-size: 12px;
 }
 </style>

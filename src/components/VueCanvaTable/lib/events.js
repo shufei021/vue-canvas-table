@@ -12,6 +12,8 @@
 
 import { throttle, debounce } from "../utils"
 import hover from "./event/hover"
+import utils from "rutilsjs";
+import {hoverAddAndReduceCell} from "../components/sort"
 export default {
   data () {
     return {
@@ -150,6 +152,48 @@ export default {
           })
         }
       }
+
+
+      // 序号加减
+      if(this.hoverAddReduceType===1){
+        this.focusCell = this.hoverAddReduceCell
+        this.rowFocus = {
+          cellX: this.focusCell.x,
+          cellY: this.focusCell.y,
+          rowIndex: this.focusCell.rowIndex,
+          offset: { ...this.offset }
+        }
+
+        this.$emit('sortReduce',this.focusCell)
+
+        console.log(this.hoverAddReduceCell,'---- 按钮')
+      }else if(this.hoverAddReduceType===2){
+        this.focusCell = this.hoverAddReduceCell
+        this.rowFocus = {
+          cellX: this.focusCell.x,
+          cellY: this.focusCell.y,
+          rowIndex: this.focusCell.rowIndex,
+          offset: { ...this.offset }
+        }
+        this.$emit('sortAdd',this.focusCell)
+        console.log(this.hoverAddReduceCell,'+++ 按钮')
+      }else{
+        // console.log('%c [ 首列 cell 不是加减区域  ]-179', 'font-size:13px; background:pink; color:#bf2c9f;', )
+        if(this.hoverAddReduceType===0){
+          if(this.hoverAddReduceCell){
+            this.focusCell = this.hoverAddReduceCell
+            this.rowFocus = {
+              cellX: this.focusCell.x,
+              cellY: this.focusCell.y,
+              rowIndex: this.focusCell.rowIndex,
+              offset: { ...this.offset }
+            }
+            this.paintFocusCell(this.focusCell)
+          }
+        }
+
+      }
+
     },
 
     /**
@@ -232,6 +276,8 @@ export default {
       const eY = evt.offsetY
       // 鼠标hover在canvas
       if(evt.target.tagName === 'CANVAS') {
+        hoverAddAndReduceCell.call(this,eX,eY)
+        // console.log('%c [ 鼠标移动 ]-237', 'font-size:13px; background:pink; color:#bf2c9f;',eX, eY,this.hoverFirstColumnCell( eX, eY))
         // 列宽
         if(this.lineCell && this.isDown) {
           this.cloumnLineStyle.left = (this.i(evt.offsetX)===-1? this.cloumnLineStyle.left : this.i(evt.offsetX)) + 'px'
@@ -260,19 +306,38 @@ export default {
         } else {
           const cell = this.getCellAt( eX, eY)
           if(cell){
+            // console.log('%c [ cell ]-309', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
             if(cell.key === "goodsCover" && cell.rowData && cell.rowData.image&&cell.rowData.image.state){
-              if(
-                x>=cell.x-(cell.width-20)/2 &&
-                x<=cell.x+(cell.width-20)/2+10 &&
-                y>=cell.y - 10 &&
-                y<=cell.y + ((cell.height-20)/2)
-              ){
-                // 有问题
-                console.log(cell)
+              this.previeStyle = {
+                left:cell.x +Math.round(cell.width/2) - 10 +'px',
+                top:cell.y+Math.round(cell.height/2) - 10+'px',
               }
+              this.previeUrl = cell.rowData.goodsPreview
+              // if(
+              //   x>=cell.x+(cell.width-20)/2 &&
+              //   x<=cell.x+cell.width/2+10 &&
+              //   y>=cell.y - 10 &&
+              //   y<=cell.y + cell.height/2+10
+              // ){
+              //   //  图片 hover $emit
+              //   // console.log(cell)
+              //   // this.previeStyle = {
+              //   //   left:cell.x +Math.round(cell.width/2) - 10 +'px',
+              //   //   top:cell.y+Math.round(cell.height/2) - 10+'px',
+              //   // }
+              //   // this.previeUrl = cell.rowData.goodsPreview
+              // }
+            } else if ( cell.key === "gift"){
+              console.log('%c [gift cell ]-331', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
+
+            } else{
+              this.previeStyle = {
+                left:'-10000px',
+                top:'-10000px',
+              }
+              this.previeUrl = ''
             }
           }
-          // console.log('%c [ x,y ]-261', 'font-size:13px; background:pink; color:#bf2c9f;',this.getCellAt( eX, eY) && this.getCellAt( eX, eY).rowData.image.state)
           this.sortCell = null
           if(!(this.lineCell && this.isDown)) this.lineCell = null
           if(!(this.lineCell && this.isDown)) document.querySelector('.excel-table').style.cursor = 'default'
