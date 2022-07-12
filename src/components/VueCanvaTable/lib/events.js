@@ -153,47 +153,57 @@ export default {
         }
       }
 
-
-      // 序号加减
-      if(this.hoverAddReduceType===1){
-        this.focusCell = this.hoverAddReduceCell
-        this.rowFocus = {
-          cellX: this.focusCell.x,
-          cellY: this.focusCell.y,
-          rowIndex: this.focusCell.rowIndex,
-          offset: { ...this.offset }
-        }
-
-        this.$emit('sortReduce',this.focusCell)
-
-        console.log(this.hoverAddReduceCell,'---- 按钮')
-      }else if(this.hoverAddReduceType===2){
-        this.focusCell = this.hoverAddReduceCell
-        this.rowFocus = {
-          cellX: this.focusCell.x,
-          cellY: this.focusCell.y,
-          rowIndex: this.focusCell.rowIndex,
-          offset: { ...this.offset }
-        }
-        this.$emit('sortAdd',this.focusCell)
-        console.log(this.hoverAddReduceCell,'+++ 按钮')
-      }else{
-        // console.log('%c [ 首列 cell 不是加减区域  ]-179', 'font-size:13px; background:pink; color:#bf2c9f;', )
-        if(this.hoverAddReduceType===0){
-          if(this.hoverAddReduceCell){
-            this.focusCell = this.hoverAddReduceCell
-            this.rowFocus = {
-              cellX: this.focusCell.x,
-              cellY: this.focusCell.y,
-              rowIndex: this.focusCell.rowIndex,
-              offset: { ...this.offset }
+      if(this.sortType===1){
+        // 序号加减
+        if(this.hoverAddReduceType===1){
+          this.focusCell = this.hoverAddReduceCell
+          this.rowFocus = {
+            cellX: this.focusCell.x,
+            cellY: this.focusCell.y,
+            rowIndex: this.focusCell.rowIndex,
+            offset: { ...this.offset }
+          }
+          this.$emit('sortReduce',this.focusCell)
+          console.log(this.hoverAddReduceCell,'---- 按钮')
+        }else if(this.hoverAddReduceType===2){
+          this.focusCell = this.hoverAddReduceCell
+          this.rowFocus = {
+            cellX: this.focusCell.x,
+            cellY: this.focusCell.y,
+            rowIndex: this.focusCell.rowIndex,
+            offset: { ...this.offset }
+          }
+          this.$emit('sortAdd',this.focusCell)
+          console.log(this.hoverAddReduceCell,'+++ 按钮')
+        }else{
+          // console.log('%c [ 首列 cell 不是加减区域  ]-179', 'font-size:13px; background:pink; color:#bf2c9f;', )
+          if(this.hoverAddReduceType===0){
+            if(this.hoverAddReduceCell){
+              this.focusCell = this.hoverAddReduceCell
+              this.rowFocus = {
+                cellX: this.focusCell.x,
+                cellY: this.focusCell.y,
+                rowIndex: this.focusCell.rowIndex,
+                offset: { ...this.offset }
+              }
+              this.paintFocusCell(this.focusCell)
             }
-            this.paintFocusCell(this.focusCell)
           }
         }
-
+      }else if(this.sortType===2){
+        if(this.hoverSortCell ){
+          this.focusCell = this.hoverSortCell
+          this.rowFocus = {
+            cellX: this.focusCell.x,
+            cellY: this.focusCell.y,
+            rowIndex: this.focusCell.rowIndex,
+            offset: { ...this.offset }
+          }
+          this.paintFocusCell(this.focusCell)
+        }
       }
-
+      // 赠品
+      if(this.hoverCheckGiftCell)this.$emit('checkboxClick',this.hoverCheckGiftCell)
     },
 
     /**
@@ -201,10 +211,13 @@ export default {
      */
     handleDoubleClick () {
       if (this.focusCell) {
-        const { x, y, width, height, content } = this.focusCell
-        this.$refs.input.innerHTML = content
-        this.keepLastIndex(this.$refs.input)
-        this.showInput(x, y, width, height)
+        const column = this.columns.find(i=>i.key===this.focusCell.key)
+        if(column && !column.disabled){
+          const { x, y, width, height, content } = this.focusCell
+          this.$refs.input.innerHTML = content
+          this.keepLastIndex(this.$refs.input)
+          this.showInput(x, y, width, height)
+        }
       }
     },
 
@@ -277,7 +290,7 @@ export default {
       // 鼠标hover在canvas
       if(evt.target.tagName === 'CANVAS') {
         hoverAddAndReduceCell.call(this,eX,eY)
-        // console.log('%c [ 鼠标移动 ]-237', 'font-size:13px; background:pink; color:#bf2c9f;',eX, eY,this.hoverFirstColumnCell( eX, eY))
+        // console.log('%c [ 鼠标移动 ]-237', 'font-size:13px; background:pink; color:#bf2c9f;',eX, eY,this.getCellIsEllipsis( eX, eY))
         // 列宽
         if(this.lineCell && this.isDown) {
           this.cloumnLineStyle.left = (this.i(evt.offsetX)===-1? this.cloumnLineStyle.left : this.i(evt.offsetX)) + 'px'
@@ -305,6 +318,7 @@ export default {
           document.querySelector('.excel-table').style.cursor = 'col-resize'
         } else {
           const cell = this.getCellAt( eX, eY)
+          this.hoverCheckGiftCell = null
           if(cell){
             // console.log('%c [ cell ]-309', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
             if(cell.key === "goodsCover" && cell.rowData && cell.rowData.image&&cell.rowData.image.state){
@@ -328,8 +342,16 @@ export default {
               //   // this.previeUrl = cell.rowData.goodsPreview
               // }
             } else if ( cell.key === "gift"){
-              console.log('%c [gift cell ]-331', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
-
+               if(
+                x>=cell.x+(cell.width-20)/2 &&
+                x<=cell.x+cell.width/2+10 &&
+                y>=cell.y - 10 &&
+                y<=cell.y + cell.height/2+10
+              ){
+                this.hoverCheckGiftCell = cell
+              }else{
+                this.hoverCheckGiftCell = null
+              }
             } else{
               this.previeStyle = {
                 left:'-10000px',
@@ -367,6 +389,22 @@ export default {
             top:'-10000px'
           }
         }
+
+        // 超出省略号
+        const cell = this.getCellAt(x,y)
+        if(cell){
+          const column = this.columns.find(i=>i.key===cell.key)
+          if(column.isImage || column.isCheckbox || column.disabled)return
+          if(cell.paintText  && cell.paintText[0]!== cell.rowData[cell.key]){
+            this.tooltip= cell.content
+            this.tooltipStyle = {
+              left:cell.x + cell.width/2 +'px',
+              top:cell.y+cell.height - 4 +'px'
+            }
+            this.$emit('cellEllipsis',cell)
+          }
+        }
+
       }else{
         this.tooltip = ''
         this.tooltipStyle = {
@@ -419,6 +457,22 @@ export default {
         }
       }
     }, 16),
+
+    // 获取单元格内容是否超出省略号了
+    getCellIsEllipsis(x,y){
+      const cell = this.getCellAt(x,y)
+      // 再根据key 去匹配到 列
+      if(cell){
+        const column = this.allColumns.find(i=>i.key===cell.key)
+        if(column){
+          return column.isEllipsis
+        }else{
+          return false
+        }
+      }else{
+        return false
+      }
+    },
 
     hoverFirstColumnCell(x,y){
       if(x>0 && x< this.serialWidth){

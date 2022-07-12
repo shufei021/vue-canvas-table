@@ -110,6 +110,10 @@ import scroller from './lib/scroller'
 export default {
   mixins: [calculate, painted, events, scroller],
   props: {
+    sortType:{
+      type:Number,
+      default:1
+    },
     columns: Array,
     dataSource: Array,
     type: {
@@ -175,15 +179,18 @@ export default {
     }
   },
   watch: {
-    dataSource (value) {
-      console.log('%c [ dataSource改变了 ]-179', 'font-size:13px; background:pink; color:#bf2c9f;')
-      this.data = [...value]
-      this.initCanvas()
-      this.painted(this.initDisplayItems())
-      this.initEvent()
-      setTimeout(() => {
-        this.rePainted()
-      },16)
+    dataSource:{
+      handler(value) {
+        console.log('%c [ dataSource改变了 ]-179', 'font-size:13px; background:pink; color:#bf2c9f;')
+        this.data = [...value]
+        this.initCanvas()
+        this.painted(this.initDisplayItems())
+        this.initEvent()
+        setTimeout(() => {
+          this.rePainted()
+        },16)
+      },
+      deep:true
     },
     // 列宽改变需要重新初始化
     columns:{
@@ -607,6 +614,8 @@ export default {
     }
   }
 }
+
+
 
 .excel-table {
   border: 1px solid #d4d4d4;

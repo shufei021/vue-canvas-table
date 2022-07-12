@@ -2,7 +2,7 @@
  * 绘制
  */
  import { throttle } from "../utils"
- import {drawAddAndReduceCell} from "../components/sort"
+ import {drawAddAndReduceCell,drawArrow} from "../components/sort"
  export default {
   data () {
     const setting = new Image()
@@ -15,6 +15,9 @@
 
     const checkedOn = new Image()
     checkedOn.src = require('../images/checked.png')
+
+    const arrowR = new Image()
+    arrowR.src = require('../images/arrow-r.png')
     return {
       // 首行背景填充色
       fillColor: '#fafafa',
@@ -48,7 +51,8 @@
       // 图片加载失败的默认图片
       imgLoadingFail, // 左上角
       checkedOff,
-      checkedOn
+      checkedOn,
+      arrowR
     }
   },
   methods: {
@@ -350,7 +354,11 @@
             ctx.fillStyle = this.selectRowColor
             ctx.fillRect(-1, item.y + 1, serialWidth + 1, item.height)
 
-            drawAddAndReduceCell(ctx,item.y + 1)
+            if(this.sortType===1){
+              drawAddAndReduceCell(ctx,item.y + 1)
+            }else{
+              ctx.drawImage(this.arrowR, this.i(this.serialWidth/2) -10,item.y + (this.rowHeight - 20)/2, 20, 20)
+            }
             ctx.moveTo(p(0), p(item.y + item.height))
             ctx.lineTo(p(serialWidth), p(item.y + item.height))
             ctx.stroke()
@@ -390,7 +398,7 @@
             ctx.fillText(column.title, p(column.x + (column.width / 2)), p(15))
           } else{
             if(column.tip){
-              const x = p(column.x)  + this.getWidth(column.title)/2 + 10
+              const x = p(column.x)  +this.i((ctx.measureText(column.title).width)/2)  + 10
               ctx.drawImage(
                 column.tip.img,
                 p(column.x) + 10,
@@ -401,14 +409,15 @@
               column.tip.point={x:p(column.x) + 10,y: (rowHeight - column.tip.size) / 2}
               ctx.fillText(column.title, x + column.tip.size +5, p(15))
             }else{
-              ctx.fillText(column.title, p(column.x)  + this.getWidth(column.title)/2 + 10 , p(15))
+              ctx.fillText(column.title, p(column.x)  +this.i(ctx.measureText(column.title).width/2)  + 10 , p(15))
             }
             if(column.sort){
+              ctx.save()
               const width = 10
               const height = 5
               const gap = 2
               const _height = height*2  + gap
-              const x_offset = i(p(column.x)  + this.getWidth(column.title) + 20)
+              const x_offset = i(p(column.x)  + this.i(ctx.measureText(column.title).width)  + 20)
               const y_offset = i((this.rowHeight - _height)/2)
               const offset = column.tip?column.tip.size : 0
               // 上三角
@@ -422,19 +431,19 @@
               ctx.fill();
 
               ctx.beginPath();
-
               ctx.fillStyle= column.sort === 'down'? '#409eff':"#c0c4cc"
               ctx.moveTo(x_offset + width/2 + offset, y_offset + _height );
               ctx.lineTo(x_offset + offset, y_offset + height + gap);
               ctx.lineTo(x_offset + width + offset, y_offset + height + gap);
               ctx.closePath();
               ctx.fill();
+              ctx.restore()
             }
           }
           ctx.moveTo(p(column.x + column.width), p(0))
           ctx.lineTo(p(column.x + column.width), p(rowHeight))
-          ctx.stroke()
         }
+        ctx.stroke()
       }
     },
 
@@ -617,15 +626,13 @@
                 if(column.center){
                   if(column.isImage){
                     ctx.drawImage(item.rowData.image, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
+                  }else if(column.isCheckbox){
+                    ctx.drawImage(item.rowData[column.key]=='1'? this.checkedOn : this.checkedOff, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
                   }else{
-                    if(column.isGift){
-                      ctx.drawImage(item.rowData.gift==1? this.checkedOn : this.checkedOff, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
-                    }else{
-                      paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText,item,column)
-                    }
+                    paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText,item,column)
                   }
                 }else{
-                  paintText(ctx,  i(item.x )   + this.getWidth(item.paintText)/2 + 10 , i(15 + item.y), item.paintText, item,column)
+                  paintText(ctx,  i(item.x )   + this.i((ctx.measureText(item.paintText).width)/2)  + 10 , i(15 + item.y), item.paintText, item,column)
                 }
               }
             }
@@ -634,16 +641,17 @@
         ctx.stroke()
     },
 
-    // 获取字符串宽度
-    getWidth(str,fontSize=12) {
-      const span = document.createElement('span')
-      span.innerHTML = str
-      span.style.cssText = `position:absolute;left:-10000;top:-10000px;${fontSize?'font-size:'+fontSize+'px':''}`
-      document.body.appendChild(span)
-      const width = span.offsetWidth
-      document.body.removeChild(span)
-      return width
+
+    getWdithIndex(ctx,str,width){
+      let result = []
+      for(let i = 0; i < str.length;i++){
+        result.push(ctx.measureText(str.slice(0,i+1)).width)
+      }
+      const dotWdith= ctx.measureText('...').width
+      const index = result.findIndex(i=>i+dotWdith>width)
+      return index
     },
+
 
     // 表体单元格内容填充 - 文本填充
     paintText (ctx, x, y, row,item,column) {

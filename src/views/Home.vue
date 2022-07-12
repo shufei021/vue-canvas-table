@@ -8,11 +8,13 @@
       :columns="columns"
       :columnSet="columnSet"
       :left-height="200"
+      :sortType="sortType"
       @sort="sort"
       @focus="focus"
       @updateValue="update"
       @sortReduce="sortReduce"
       @sortAdd="sortAdd"
+      @checkboxClick="checkboxClick"
     >
       <!-- 底部选择商品组件 -->
       <template #footer>
@@ -76,14 +78,16 @@ export default {
         key: "goodsCover",
         width: 48,
         center: true,
-        isImage:true
+        isImage:true,
+        disabled:true
       },
       {
         center: true,
         title: "赠品",
         key: "gift",
         width: 48,
-        isGift:true
+        isCheckbox:true,
+        disabled:true
       },
       {
         title: "商品名称",
@@ -137,7 +141,7 @@ export default {
         tip:{
           img:tip,
           size:14,
-          desc:'上次交易金额=销售折后税后金额-销售单整单优惠金额，已连接第三方ERP时，上次交易金额=最近一次销售单的销售金额，包括销售单和零售单'
+          desc:'双击数量或者快捷键Ctrl+Enter可进行多单位录入操作'
         }
       },
       {
@@ -163,6 +167,7 @@ export default {
     const columnsWidth = columns.reduce((p, c) => p + c.width, 0);
     const emptyWidth = window.innerWidth - columnsWidth - 57;
     return {
+      sortType:1,
       columnSet: true,
       data: [],
       allFixedCells: [
@@ -192,18 +197,18 @@ export default {
   },
   created() {
     this.data1 = [];
-    for (let i = 0; i < 100; i += 1) {
+    for (let i = 0; i < 1000; i += 1) {
       this.data1.push({
         brandName: `博世${i}`,
         goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
         goodsPreview:'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/400/h/400',
         goodsName: `电钻${i}`,
-        gift:Math.random() > 0.5?'1':'0',
-        sn: `SDFSD${i}`,
+        gift: Math.random() > 0.5?'0':'1',
+        sn: `${'SDFSDSDFSDSDFSDSDFSD'.slice(0,Math.round(Math.random()*20))}${i}`,
         materialNo: i + 1,
         unit: "个",
         requiredQuantity: 10,
-        customerRemarks: `测试测试测试测测测测测测测测测测测测试测试${i}`,
+        customerRemarks: `${'测试测试测试测测测测测测测测测测测测试测试'.slice(0,Math.round(Math.random()*21))}${i}`,
         purchasePrice: 10.2,
         salePrice: 12.3,
         shipDesc: 10,
@@ -300,7 +305,7 @@ export default {
         goodsPreview:'',
         goodsName: ``,
         sn: ``,
-        gift:'',
+        gift:'0',
         materialNo: '',
         unit: "",
         requiredQuantity: '',
@@ -311,6 +316,11 @@ export default {
         createDate: '',
         image:''
       })
+    },
+    checkboxClick(cell){
+      console.log(cell,'checkboxClick')
+      // cell.rowData[cell.key]
+      this.data[cell.rowIndex][cell.key] = cell.rowData[cell.key]=='0'?'1':'0'
     }
   }
 };

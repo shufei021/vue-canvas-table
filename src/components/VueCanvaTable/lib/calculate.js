@@ -189,7 +189,7 @@
             text = item[column.key]
           }
           if (text || text === 0) {
-            textLine = getTextLine(ctx, text, column.width ? column.width : 100,column)
+            textLine = getTextLine(ctx, text, column.width ? column.width : 100,item)
             let textLineCount = 0
             if (textLine) {
               textLineCount = textLine.length
@@ -282,7 +282,7 @@
             text = item[column.key]
           }
           if (text || text === 0) {
-            textLine = getTextLine(ctx, text, column.width ? column.width : 100,column)
+            textLine = getTextLine(ctx, text, column.width ? column.width : 100,item)
             let textLineCount = 0
             if (textLine) {
               textLineCount = textLine.length
@@ -337,7 +337,7 @@
       const row = allRows[rowIndex]
       const cell = allCells[rowIndex][cellIndex]
       let maxHeight = 0
-      const textLine = getTextLine(ctx, text, cell.width)
+      const textLine = getTextLine(ctx, text, cell.width,cell)
       let textLineCount = 0
       if (textLine) {
         textLineCount = textLine.length
@@ -499,8 +499,14 @@
     getTextLine (ctx, text, width,cell) {
       if (!text && text !== 0) return null
       if(cell.isImage===true)return [text]
-      // 文字内容超出省略
-      return this.getWidth(text)>=width-20? [String(text).slice(0,Math.round((width-20)/12)-1)+'...'] : [text]
+      if(ctx.measureText(text).width>width-20){
+        // 文字内容超出省略
+        return [String(text).slice(0,this.getWdithIndex(ctx,text,width-20))+'...']
+      }else{
+        return  [text]
+      }
+
+
       // const chr = `${text}`.split('')
       // let temp = ''
       // const row = []
