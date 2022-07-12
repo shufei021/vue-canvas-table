@@ -499,12 +499,13 @@
     getTextLine (ctx, text, width,cell) {
       if (!text && text !== 0) return null
       if(cell.isImage===true)return [text]
-      if(ctx.measureText(text).width>width-20){
-        // 文字内容超出省略
-        return [String(text).slice(0,this.getWdithIndex(ctx,text,width-20))+'...']
-      }else{
-        return  [text]
-      }
+      return [text]
+      // if(ctx.measureText(text).width>width-20){
+      //   // 文字内容超出省略 this.getWdithIndex(ctx,text,width-20)
+      //   return [String(text).slice(0,this.getWdithIndex(ctx,text,width-20))+'...']
+      // }else{
+      //   return  [text]
+      // }
 
 
       // const chr = `${text}`.split('')

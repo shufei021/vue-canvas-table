@@ -393,6 +393,7 @@ export default {
         // 超出省略号
         const cell = this.getCellAt(x,y)
         if(cell){
+          console.log('%c [ cell ]-396', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
           const column = this.columns.find(i=>i.key===cell.key)
           if(column.isImage || column.isCheckbox || column.disabled)return
           if(cell.paintText  && cell.paintText[0]!== cell.rowData[cell.key]){

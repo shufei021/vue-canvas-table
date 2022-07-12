@@ -623,16 +623,44 @@
               if (item.buttons) {
                 this.paintButton(ctx, item, i(item.x))
               } else if (item.paintText && item.paintText.length > 0) {
+                // console.log('%c [ 表体单元格内容填充 ]-626', 'font-size:13px; background:pink; color:#bf2c9f;', )
                 if(column.center){
+
                   if(column.isImage){
                     ctx.drawImage(item.rowData.image, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
                   }else if(column.isCheckbox){
                     ctx.drawImage(item.rowData[column.key]=='1'? this.checkedOn : this.checkedOff, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
                   }else{
-                    paintText(ctx, i(item.x + (item.width / 2)), i(15 + item.y), item.paintText,item,column)
+                    if(ctx.measureText(item.paintText[0]).width>item.width-20){
+                      ctx.fillText(
+                        String(item.paintText[0]).slice(0,this.getWdithIndex(ctx,item.paintText[0],item.width-20))+'...',
+                        i(item.x + (item.width / 2)),
+                        i(15 + item.y)+2
+                      )
+                      item.paintText[0] = String(item.paintText[0]).slice(0,this.getWdithIndex(ctx,item.paintText[0],item.width-20))+'...'
+                    }else{
+                      ctx.fillText(
+                        item.paintText[0],
+                        i(item.x)+i(ctx.measureText(item.paintText[0]).width/2)+10,
+                        i(15 + item.y)+2
+                      )
+                    }
                   }
                 }else{
-                  paintText(ctx,  i(item.x )   + this.i((ctx.measureText(item.paintText).width)/2)  + 10 , i(15 + item.y), item.paintText, item,column)
+                  if(ctx.measureText(item.paintText[0]).width>item.width-20){
+                    ctx.fillText(
+                      String(item.paintText[0]).slice(0,this.getWdithIndex(ctx,item.paintText[0],item.width-20))+'...',
+                      i(item.x + (item.width / 2)),
+                      i(15 + item.y)+2
+                    )
+                    item.paintText[0] = String(item.paintText[0]).slice(0,this.getWdithIndex(ctx,item.paintText[0],item.width-20))+'...'
+                  }else{
+                    ctx.fillText(
+                      item.paintText[0],
+                      i(item.x)+i(ctx.measureText(item.paintText[0]).width/2)+10,
+                      i(15 + item.y)+2
+                    )
+                  }
                 }
               }
             }
@@ -655,10 +683,10 @@
 
     // 表体单元格内容填充 - 文本填充
     paintText (ctx, x, y, row,item,column) {
-      // console.log('%c [  ]-739', 'font-size:13px; background:pink; color:#bf2c9f;', row)
-
-      for (let b = 0; b < row.length; b += 1) {
-        ctx.fillText(row[b], x, y + (b * 18))
+      if(ctx.measureText(row[0]).width>column.width-20){
+        ctx.fillText(String(row[0]).slice(0,this.getWdithIndex(ctx,row[0],column.width-20))+'...', x, y+2 )
+      }else{
+        ctx.fillText(row[0], x, y+2 )
       }
     }
   }
