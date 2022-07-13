@@ -339,7 +339,7 @@ body {
   margin: 0;
 }
 .demo-wrap{
-  width: 50%;
+  width: 70%;
   height: 983px;
   margin: 0px auto;
   padding-top: 50px;
