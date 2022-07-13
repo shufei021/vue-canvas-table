@@ -205,7 +205,7 @@ export default {
   },
   created() {
     this.data1 = [];
-    for (let i = 0; i < 1000; i += 1) {
+    for (let i = 0; i < 100; i += 1) {
       this.data1.push({
         brandName: `博世${i}`,
         goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',

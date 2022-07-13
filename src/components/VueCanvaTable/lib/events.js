@@ -418,11 +418,11 @@ export default {
 
 
 
-        this.tooltip = ''
-        this.tooltipStyle = {
-          left:'-10000px',
-          top:'-10000px'
-        }
+        // this.tooltip = ''
+        // this.tooltipStyle = {
+        //   left:'-10000px',
+        //   top:'-10000px'
+        // }
         // if(['vertical','horizontalBar'].includes(evt.target.className)){
 
           // 纵向滚动
