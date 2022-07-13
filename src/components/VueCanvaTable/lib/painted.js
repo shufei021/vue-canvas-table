@@ -463,28 +463,49 @@
       ctx.font = 'normal 12px PingFang SC'
       // 底部固定区域绘制的border宽度
       ctx.lineWidth = 1
-      let i = 0
-      for (const column of displayColumns) {
-        i++
+      for (const [index,column] of displayColumns.entries()) {
         if (!column.fixed || this.fillWidth > 0) {
           ctx.fillStyle = '#378efb'
 
           const y = this.height - this.rowHeight - this.scrollerWidth
-          if (i === 5) { //
-            ctx.fillStyle = '#bfbfbf'
-            ctx.fillText('请输入商品名称/编号/条码', p(displayColumns[0].x) + this.serialWidth + 30, y - this.rowHeight / 2 + 2)
-            // 合并前4列表
-            ctx.moveTo(p(displayColumns[0].x), y - this.rowHeight)
-            ctx.lineTo(p(column.x + column.width) - column.width, y - this.rowHeight)
-            ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
-            ctx.lineTo(p(column.x + column.width), y)
-          } else if (i > 3) {
+
+          if(this.allColumns.slice(0,4).map(i=>i.key).includes(column.key)){
             ctx.moveTo(p(column.x + column.width) - column.width, y - this.rowHeight)
             ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
-            ctx.lineTo(p(column.x + column.width), y)
+            if(this.allColumns[0].key===column.key &&index===0){
+              ctx.fillStyle = '#bfbfbf'
+              ctx.fillText('请输入商品名称/编号/条码', p(column.x)  +this.i(ctx.measureText('请输入商品名称/编号/条码').width/2)  + 10, y - this.rowHeight / 2 + 2)
+            }else if(this.allColumns[1].key===column.key && index===0){
+              ctx.fillStyle = '#bfbfbf'
+              ctx.fillText('请输入商品名称/编号/条码', p(displayColumns[0].x)  +this.i(ctx.measureText('请输入商品名称/编号/条码').width/2) + 10 +this.offset.x, y - this.rowHeight / 2 + 2)
+            }
+            // if (index === 4) { //
+            //   ctx.fillStyle = '#bfbfbf'
+            //   ctx.fillText('请输入商品名称/编号/条码', p(displayColumns[0].x+this.offset.x)  +this.i(ctx.measureText('请输入商品名称/编号/条码').width/2)  + 10, y - this.rowHeight / 2 + 2)
+            //   // 合并前4列表
+            //   ctx.moveTo(p(displayColumns[0].x), y - this.rowHeight)
+            //   ctx.lineTo(p(column.x + column.width) - column.width, y - this.rowHeight)
+            //   ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
+            //   ctx.lineTo(p(column.x + column.width), y)
+            // } else if(index>4) {
+            //   ctx.moveTo(p(column.x + column.width) - column.width, y - this.rowHeight)
+            //   ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
+            //   ctx.lineTo(p(column.x + column.width), y)
+            // }
+          } else {
+                ctx.moveTo(p(column.x + column.width) - column.width, y - this.rowHeight)
+                ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
+                ctx.lineTo(p(column.x + column.width), y)
           }
 
-          ctx.fillText(column.isTotal ? 100 : '', p(column.x + (column.width / 2)), y + (this.rowHeight / 2))
+
+
+
+          // index ===0 &&  ctx.fillText('请输入', p(column.x)  +this.i(ctx.measureText('请输入').width/2)  + 10, y - this.rowHeight / 2 + 2)
+          // ctx.moveTo(p(column.x + column.width) - column.width, y - this.rowHeight)
+          // ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
+          //   ctx.lineTo(p(column.x + column.width), y)
+          ctx.fillText(column.isTotal ? column.total : '', p(column.x)  +this.i(ctx.measureText(column.total).width/2)  + 10, y + (this.rowHeight / 2)+2)
 
           ctx.moveTo(p(column.x + column.width) - column.width, y)
           ctx.lineTo(p(column.x + column.width), y)
@@ -623,9 +644,7 @@
               if (item.buttons) {
                 this.paintButton(ctx, item, i(item.x))
               } else if (item.paintText && item.paintText.length > 0) {
-                // console.log('%c [ 表体单元格内容填充 ]-626', 'font-size:13px; background:pink; color:#bf2c9f;', )
                 if(column.center){
-
                   if(column.isImage){
                     ctx.drawImage(item.rowData.image, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
                   }else if(column.isCheckbox){

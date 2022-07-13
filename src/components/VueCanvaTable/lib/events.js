@@ -88,6 +88,7 @@ export default {
      * 鼠标单击
      */
     handleClick (evt) {
+
       // 如果不是选中状态
       if (!this.isSelect) {
         const x = evt.offsetX
@@ -103,6 +104,7 @@ export default {
           const ey = sy + this.settingHeight
           if (x > sx && x < ex && y > sy && y < ey) {
             alert('表头字段设置')
+            this.$emit('cornerClick')
           }
         } else {
           this.handleColumnSet()
@@ -117,8 +119,11 @@ export default {
         const { displayColumns } = this.initDisplayItems()
 
 
-        if (x > this.serialWidth && x < displayColumns.slice(0, 4).reduce((p, c) => p += c.width, this.serialWidth) && y > this.height - this.rowHeight - this.scrollerWidth - this.rowHeight && y < this.height - this.rowHeight - this.scrollerWidth) {
-          const width = displayColumns.slice(0, 4).reduce((p, c) => p += c.width, 0)
+        if (x > this.serialWidth && x < displayColumns.slice(0, 5).reduce((p, c) => p += c.width, this.serialWidth) && y > this.height - this.rowHeight - this.scrollerWidth - this.rowHeight && y < this.height - this.rowHeight - this.scrollerWidth) {
+          this.offset.x = 0
+          this.horizontalBar.x = 0
+          requestAnimationFrame(this.rePainted)
+          const width = this.initDisplayItems().displayColumns.slice(0, 5).reduce((p, c) => p += c.width, 0)
           const height = this.rowHeight
           const _x = this.serialWidth
           const _y = this.height - this.rowHeight - this.scrollerWidth - this.rowHeight
@@ -128,12 +133,14 @@ export default {
           this.isFocus = false
           this.focusCell = null
           this.isSelect = false
-          this.rePainted()
+
         } else {
           this.isTotalVisible = false
         }
       } else {
         this.isTotalVisible = false
+        // this.isEditing = false
+        // this.inputStyles.top = '-10000px'
       }
 
       // 点击 表头排序单元格
@@ -204,6 +211,8 @@ export default {
       }
       // 赠品
       if(this.hoverCheckGiftCell)this.$emit('checkboxClick',this.hoverCheckGiftCell)
+
+
     },
 
     /**
@@ -393,7 +402,6 @@ export default {
         // 超出省略号
         const cell = this.getCellAt(x,y)
         if(cell){
-          console.log('%c [ cell ]-396', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
           const column = this.columns.find(i=>i.key===cell.key)
           if(column.isImage || column.isCheckbox || column.disabled)return
           if(cell.paintText  && cell.paintText[0]!== cell.rowData[cell.key]){
@@ -406,13 +414,16 @@ export default {
           }
         }
 
-      }else{
+      }
+
+
+
         this.tooltip = ''
         this.tooltipStyle = {
           left:'-10000px',
           top:'-10000px'
         }
-        if(['vertical','horizontalBar'].includes(evt.target.className)){
+        // if(['vertical','horizontalBar'].includes(evt.target.className)){
 
           // 纵向滚动
           if (this.verticalBar.move) {
@@ -449,14 +460,13 @@ export default {
             this.offset.x = -this.horizontalBar.x / this.horizontalBar.k
             requestAnimationFrame(this.rePainted)
           }
-        }else{
+        // }else{
           // canvas 和 滚动条外的 移动
           // console.log('%c [ out ]-342', 'font-size:13px; background:pink; color:#bf2c9f;', )
           this.hoverCell = null
           this.rowHover = null
           // this.rePainted()
-        }
-      }
+        // }
     }, 16),
 
     // 获取单元格内容是否超出省略号了
@@ -497,7 +507,6 @@ export default {
     getHeaderLineCell(x, y){
       const cell = this.displayColumns.find(i=>this.i(i.width + i.x)-x>= -5 && this.i(i.width + i.x)-x<=5)
       if(cell && y>0 && y <this.rowHeight){
-        console.log('%c [ cell ]-360', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
         return cell
       }else{
         return null
@@ -537,9 +546,10 @@ export default {
      *
      */
     handleMousedown (evt) {
-
+      if(evt.target.tagName !== 'CANVAS')this.hideInput()
       this.save()
       let needRepaint = false
+
       if (evt.target.tagName === 'CANVAS') {
         setTimeout(() => {
           this.isDown = true

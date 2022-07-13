@@ -18,7 +18,7 @@
     >
       <!-- 底部选择商品组件 -->
       <template #footer>
-        <div @click="log">自定义组件</div>
+        <div @click="log">请输入商品名称/编号/条码</div>
       </template>
 
       <!-- 自定义表头字段自定义组件 -->
@@ -118,7 +118,8 @@ export default {
         key: "requiredQuantity",
         type: "number",
         width: 70,
-        isTotal: true
+        isTotal: true,
+        total: parseInt(Math.random()*10000)+''
       },
       {
         title: "客户备注",
@@ -138,6 +139,7 @@ export default {
         type: "number",
         width: 150,
         isTotal: true,
+        total: parseInt(Math.random()*10000)+'',
         tip:{
           img:tip,
           size:14,
@@ -149,7 +151,8 @@ export default {
         key: "salePrice",
         type: "number",
         width: 150,
-        isTotal: true
+        isTotal: true,
+        total: parseInt(Math.random()*10000)+''
       },
       {
         title: "货期",
@@ -164,8 +167,13 @@ export default {
         isCloumnBg: true
       }
     ];
-    const columnsWidth = columns.reduce((p, c) => p + c.width, 0);
-    const emptyWidth = window.innerWidth - columnsWidth - 57;
+    this.columnsWidth = columns.reduce((p, c) => p + c.width, 0);
+    const bodyWidth = this.columnsWidth + 59
+    const emptyWidth =window.innerWidth-20-20 - bodyWidth;
+    const result = [...columns]
+    if(emptyWidth>0){
+      result.push({ title: "", width: emptyWidth, key: "empty" })
+    }
     return {
       sortType:1,
       columnSet: true,
@@ -175,8 +183,8 @@ export default {
         // { title: "商品名称", key: "goodsName", width: 150 }
       ],
       columns: [
-        ...columns,
-        { title: "", width: emptyWidth, key: "empty" },
+        ...result,
+        // { title: "", width: emptyWidth, key: "empty" },
         // {
         //     title: '操作',
         //     width: 70,
@@ -197,7 +205,7 @@ export default {
   },
   created() {
     this.data1 = [];
-    for (let i = 0; i < 2000; i += 1) {
+    for (let i = 0; i < 100; i += 1) {
       this.data1.push({
         brandName: `博世${i}`,
         goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
@@ -234,6 +242,7 @@ export default {
     });
   },
   methods: {
+
     /**
      * @description 排序
      * @param {Object} item :点击的排序对象
@@ -330,10 +339,11 @@ body {
   margin: 0;
 }
 .demo-wrap{
-  width: 1745px;
+  width: 50%;
   height: 983px;
   margin: 0px auto;
   padding-top: 50px;
   box-sizing: border-box;
+  padding:0 10px;
 }
 </style>
