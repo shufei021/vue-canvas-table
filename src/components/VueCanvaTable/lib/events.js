@@ -222,6 +222,7 @@ export default {
       if (this.focusCell) {
         const column = this.columns.find(i=>i.key===this.focusCell.key)
         if(column && !column.disabled){
+          // 并且不能是第一列
           const { x, y, width, height, content } = this.focusCell
           this.$refs.input.innerHTML = content
           this.keepLastIndex(this.$refs.input)
@@ -402,9 +403,10 @@ export default {
         // 超出省略号
         const cell = this.getCellAt(x,y)
         if(cell){
+          console.log('%c [ cell ]-405', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
           const column = this.columns.find(i=>i.key===cell.key)
           if(column.isImage || column.isCheckbox || column.disabled)return
-          if(cell.paintText  && cell.paintText[0]!== cell.rowData[cell.key]){
+          if(cell.paintText &&cell.paintText[1]  && cell.paintText[1]!== cell.rowData[cell.key]){
             this.tooltip= cell.content
             this.tooltipStyle = {
               left:cell.x + cell.width/2 +'px',

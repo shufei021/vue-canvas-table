@@ -92,7 +92,7 @@ export default {
       {
         title: "商品名称",
         key: "goodsName",
-        width: 150
+        width: 100
       },
       {
         title: "规格型号",
@@ -156,26 +156,26 @@ export default {
       },
       {
         title: "货期",
-        width: 100,
+        width: 60,
         key: "shipDesc"
       },
       {
         title: "创建时间",
-        width: 150,
+        width: 180,
         key: "createDate",
         sort: "default",
-        isCloumnBg: true
+        isCloumnBg: true,
       }
     ];
     this.columnsWidth = columns.reduce((p, c) => p + c.width, 0);
     const bodyWidth = this.columnsWidth + 59
     const emptyWidth =window.innerWidth-20-20 - bodyWidth;
     const result = [...columns]
-    if(emptyWidth>0){
-      result.push({ title: "", width: emptyWidth, key: "empty" })
-    }
+    // if(emptyWidth>0){
+    //   result.push({ title: "", width: emptyWidth, key: "empty" })
+    // }
     return {
-      sortType:1,
+      sortType:2,
       columnSet: true,
       data: [],
       allFixedCells: [
@@ -205,7 +205,7 @@ export default {
   },
   created() {
     this.data1 = [];
-    for (let i = 0; i < 100; i += 1) {
+    for (let i = 0; i < 2000; i += 1) {
       this.data1.push({
         brandName: `博世${i}`,
         goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',

@@ -11,7 +11,7 @@
     const height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
     let originPointX = serialWidth
 
-    const bottomFixedRows = 2
+    const bottomFixedRows = 0
     return {
       width: 0,
       height,
@@ -59,18 +59,20 @@
   },
   mounted () {
     this.width = this.$refs.grid.offsetWidth - 2
+    console.log('%c [ this.width ]-62', 'font-size:13px; background:pink; color:#bf2c9f;', this.width)
 
     this.height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
     this.maxPoint.y = this.height - this.scrollerWidth
 
     this.bodyWidth = this.originPoint.x
+    console.log('%c [ this.originPoint ]-67', 'font-size:13px; background:pink; color:#bf2c9f;', this.originPoint)
     for (const column of this.columns) {
       this.bodyWidth += column.width ? column.width : 100
     }
-    if (this.bodyWidth < this.width - this.scrollerWidth) {
-      this.fillWidth = (this.width - this.bodyWidth - this.scrollerWidth) / this.columns.length
-      this.bodyWidth = this.width - this.scrollerWidth
-    }
+    // if (this.bodyWidth < this.width - this.scrollerWidth) {
+    //   this.fillWidth = (this.width - this.bodyWidth - this.scrollerWidth) / this.columns.length
+    //   this.bodyWidth = this.width - this.scrollerWidth
+    // }
   },
   methods: {
     fullScreen () {
@@ -465,8 +467,7 @@
       const temp = []
       let startY = originPoint.y + y
       for (const row of allRows) {
-        if (startY + row.height > originPoint.y &&
-                  startY < maxPoint.y) {
+        if (startY + row.height > originPoint.y &&startY < maxPoint.y) {
           const rowClone = Object.assign({}, row, { y: startY })
           temp.push(rowClone)
         } else if (startY >= maxPoint.y) {

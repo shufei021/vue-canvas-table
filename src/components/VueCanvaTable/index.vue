@@ -184,11 +184,11 @@ export default {
         console.log('%c [ dataSource改变了 ]-179', 'font-size:13px; background:pink; color:#bf2c9f;')
         this.data = [...value]
         this.initCanvas()
-        this.painted(this.initDisplayItems())
+        // this.painted(this.initDisplayItems())
         this.initEvent()
-        setTimeout(() => {
+        // setTimeout(() => {
           this.rePainted()
-        },16)
+        // },16)
       },
       deep:true
     },
@@ -196,11 +196,9 @@ export default {
     columns:{
       handler(){
         this.initCanvas()
-        this.painted(this.initDisplayItems())
+        // this.painted(this.initDisplayItems())
         this.initEvent()
-        setTimeout(() => {
           this.rePainted()
-        },16)
       },
       deep:true
     }

@@ -124,9 +124,9 @@
 
       ctx.fillStyle = this.headerColor// text color
       ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
       ctx.lineWidth = 1
       ctx.strokeStyle = this.borderColor
-      ctx.textBaseline = 'middle'
       ctx.save()
 
       this.renderButtons = []
@@ -152,10 +152,10 @@
        // 绘制倒三角
        this.paintNo(ctx)
 
-      this.paintFooter(ctx, displayColumns)
+      // this.paintFooter(ctx, displayColumns)
 
       // 绘制底部表尾巴固定合计行
-      this.paintTotal(ctx)
+      // this.paintTotal(ctx)
 
 
 
@@ -587,7 +587,7 @@
       // 过滤出 需要渲染列表背景色的 Columns
       const bgColumns = displayColumns.filter(i=>i.isCloumnBg)
 
-      // 画横线
+      // 行背景色
       for (const item of displayRows) {
         if ((rowFocus && rowFocus.cellY === item.y) || (this.hoverCell && this.hoverCell.y === item.y)) {
           ctx.fillStyle = this.selectRowColor
@@ -635,48 +635,62 @@
         ctx.beginPath()
         ctx.font = 'normal 12px PingFang SC'
         ctx.fillStyle = this.textColor
-        // 显示的单元格
+        //                 显示的单元格
         for (const rows of displayCells) {
+          //
           for (const item of rows) {
-            // 找到对应的 列
+            // 找到单元格对应的列
             const column = this.columns.find(i=>i.key===item.key)
+
             if (!item.fixed || this.fillWidth > 0) {
-              if (item.buttons) {
-                this.paintButton(ctx, item, i(item.x))
-              } else if (item.paintText && item.paintText.length > 0) {
+              // 如果文本存在有值
+              if (item.paintText && item.paintText.length) {
+                // 文本内容
+                const text = item.paintText[0]
+                // 文本内容才canvas 的宽度
+                const _w = ctx.measureText(text).width
+                // 文本超出的 x值
+                const _x = i(item.x + (item.width / 2))
+                // 超出的文本
+                const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
+                // 如果当前单元格对应列是居中
                 if(column.center){
+                  // 如果是渲染图片
                   if(column.isImage){
                     ctx.drawImage(item.rowData.image, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
-                  }else if(column.isCheckbox){
+                  }else if(column.isCheckbox){// 如果是复选框
                     ctx.drawImage(item.rowData[column.key]=='1'? this.checkedOn : this.checkedOff, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
                   }else{
-                    if(ctx.measureText(item.paintText[0]).width>item.width-20){
+                    if(_w>item.width-20){
                       ctx.fillText(
-                        String(item.paintText[0]).slice(0,this.getWdithIndex(ctx,item.paintText[0],item.width-20))+'...',
-                        i(item.x + (item.width / 2)),
+                        _txt,
+                        _x,
                         i(15 + item.y)+2
                       )
-                      item.paintText[0] = String(item.paintText[0]).slice(0,this.getWdithIndex(ctx,item.paintText[0],item.width-20))+'...'
+                      // text = _txt
+                      item.paintText.length==1 && item.paintText.push(_txt)
+                      // item.Text = _txt
                     }else{
                       ctx.fillText(
-                        item.paintText[0],
-                        i(item.x)+i(ctx.measureText(item.paintText[0]).width/2)+10,
+                        text,
+                        i(item.x)+i(_w/2)+10,
                         i(15 + item.y)+2
                       )
                     }
                   }
                 }else{
-                  if(ctx.measureText(item.paintText[0]).width>item.width-20){
+                  if(_w>item.width-20){
                     ctx.fillText(
-                      String(item.paintText[0]).slice(0,this.getWdithIndex(ctx,item.paintText[0],item.width-20))+'...',
-                      i(item.x + (item.width / 2)),
+                      _txt,
+                      _x,
                       i(15 + item.y)+2
                     )
-                    item.paintText[0] = String(item.paintText[0]).slice(0,this.getWdithIndex(ctx,item.paintText[0],item.width-20))+'...'
+                    // item.Text = _txt
+                    item.paintText.length==1 && item.paintText.push(_txt)
                   }else{
                     ctx.fillText(
-                      item.paintText[0],
-                      i(item.x)+i(ctx.measureText(item.paintText[0]).width/2)+10,
+                      text,
+                      i(item.x)+i(_w/2)+10,
                       i(15 + item.y)+2
                     )
                   }
