@@ -135,6 +135,7 @@ export default {
       type: Boolean,
       default: false
     },
+    allStatsList:Array,
     templateData: Object,
     customComponentKeys:{
       type: Array,
@@ -199,6 +200,10 @@ export default {
         // this.painted(this.initDisplayItems())
         this.initEvent()
           this.rePainted()
+          this.bodyWidth = this.originPoint.x
+           for (const column of this.columns) {
+            this.bodyWidth += column.width ? column.width : 100
+          }
       },
       deep:true
     }
@@ -676,15 +681,27 @@ export default {
   padding: 5px;
   top: -10000px;
   left: -10000px;
-  outline: none;
-  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 5px;
-  border: 2px solid #4285f4;
+  // outline: none;
+  // box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 5px;
+  // border: 2px solid #4285f4;
   color: #666;
-  border-radius: 0px;
+  // border-radius: 0px;
   font-size: 12px;
   position: fixed;
-  background-color: #fff;
+  // background-color: #fff;
   z-index: 10;
+  text-indent: 10px;
+  text-align: left;
+  line-height: 30px;
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+    box-sizing: content-box;
+    resize: none;
+    outline: none;
+    border: 1px solid rgb(97, 173, 255);
+    box-shadow: rgba(55, 142, 251 , 20%) 0px 0px 0px 2px;
+    background-color: rgb(240, 249, 255);
 }
 
 .focus-area {

@@ -59,13 +59,12 @@
   },
   mounted () {
     this.width = this.$refs.grid.offsetWidth - 2
-    console.log('%c [ this.width ]-62', 'font-size:13px; background:pink; color:#bf2c9f;', this.width)
 
     this.height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
     this.maxPoint.y = this.height - this.scrollerWidth
+    console.log('%c [ this.maxPoint ]-67', 'font-size:13px; background:pink; color:#bf2c9f;', this.maxPoint)
 
     this.bodyWidth = this.originPoint.x
-    console.log('%c [ this.originPoint ]-67', 'font-size:13px; background:pink; color:#bf2c9f;', this.originPoint)
     for (const column of this.columns) {
       this.bodyWidth += column.width ? column.width : 100
     }

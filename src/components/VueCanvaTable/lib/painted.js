@@ -373,6 +373,19 @@
 
         }
       }
+      if(this.allStatsList && this.allStatsList.length){
+        for(const item of this.allStatsList){
+          ctx.fillStyle = '#fff'
+          ctx.fillRect(0, 1017, this.width, this.rowHeight*2+4)
+          // console.log('%c [ item ]-543', 'font-size:13px; background:pink; color:#bf2c9f;', item)
+          // // ctx.fillStyle = this.textColor
+          // ctx.font = 'normal 12px PingFang SC'
+          // ctx.fillText(item.index, serialWidth / 2, 1020)
+          // ctx.moveTo(p(0), 1050)
+          // ctx.lineTo(p(serialWidth), 1050)
+          // ctx.stroke()
+        }
+      }
       ctx.stroke()
 
     },
@@ -538,21 +551,22 @@
       // ctx.lineTo(p(0), p(rowHeight))
       ctx.stroke()
 
-      // 合并
-      ctx.beginPath()
-      ctx.strokeStyle = this.borderColor
-      ctx.fillStyle = '#fff'
-      ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth, serialWidth, rowHeight)
 
-      ctx.fillStyle = this.headerColor
-      ctx.fillText('合计', serialWidth / 2, this.height - this.rowHeight - this.scrollerWidth + this.rowHeight / 2)
-      ctx.lineWidth = 1
-      ctx.moveTo(p(serialWidth) - this.serialWidth, this.height - this.rowHeight - this.scrollerWidth)
-      ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth)
+      // 合并
+      // ctx.beginPath()
+      // ctx.strokeStyle = this.borderColor
+      // ctx.fillStyle = '#fff'
+      // ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth, serialWidth, rowHeight)
+
+      // ctx.fillStyle = this.headerColor
+      // ctx.fillText('合计', serialWidth / 2, this.height - this.rowHeight - this.scrollerWidth + this.rowHeight / 2)
+      // ctx.lineWidth = 1
+      // ctx.moveTo(p(serialWidth) - this.serialWidth, this.height - this.rowHeight - this.scrollerWidth)
       // ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth)
-      ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth + this.rowHeight)
-      // ctx.lineTo(p(0), p(rowHeight))
-      ctx.stroke()
+      // // ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth)
+      // ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth + this.rowHeight)
+      // // ctx.lineTo(p(0), p(rowHeight))
+      // ctx.stroke()
 
       // if (this.columnSet) {
       //     // (serialWidth - 16)/2
@@ -635,41 +649,66 @@
         ctx.beginPath()
         ctx.font = 'normal 12px PingFang SC'
         ctx.fillStyle = this.textColor
-        //                 显示的单元格
-        for (const rows of displayCells) {
-          //
-          for (const item of rows) {
-            // 找到单元格对应的列
-            const column = this.columns.find(i=>i.key===item.key)
+        // 显示的单元格
+        for (const [rowIndex,rows] of displayCells.entries() ) {
+          if( rowIndex===displayCells.length-1){
+            // ctx.fillStyle = '#fff'
+            // ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth, this.width, this.rowHeight)
+          }else{
+            for (const  item of rows) {
 
-            if (!item.fixed || this.fillWidth > 0) {
-              // 如果文本存在有值
-              if (item.paintText && item.paintText.length) {
-                // 文本内容
-                const text = item.paintText[0]
-                // 文本内容才canvas 的宽度
-                const _w = ctx.measureText(text).width
-                // 文本超出的 x值
-                const _x = i(item.x + (item.width / 2))
-                // 超出的文本
-                const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
-                // 如果当前单元格对应列是居中
-                if(column.center){
-                  // 如果是渲染图片
-                  if(column.isImage){
-                    ctx.drawImage(item.rowData.image, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
-                  }else if(column.isCheckbox){// 如果是复选框
-                    ctx.drawImage(item.rowData[column.key]=='1'? this.checkedOn : this.checkedOff, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
+              // 找到单元格对应的列
+              const column = this.columns.find(i=>i.key===item.key)
+
+              if (!item.fixed || this.fillWidth > 0) {
+                // 如果文本存在有值
+                if (item.paintText && item.paintText.length) {
+                  // 文本内容
+                  const text = item.paintText[0]
+                  // 文本内容才canvas 的宽度
+                  const _w = ctx.measureText(text).width
+                  // 文本超出的 x值
+                  const _x = i(item.x + (item.width / 2))
+
+                  // const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
+                  // 如果当前单元格对应列是居中
+                  if(column.center){
+                    // 如果是渲染图片
+                    if(column.isImage){
+                      ctx.drawImage(item.rowData.image, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
+                    }else if(column.isCheckbox){// 如果是复选框
+                      ctx.drawImage(item.rowData[column.key]=='1'? this.checkedOn : this.checkedOff, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
+                    }else{
+                        // 超出的文本
+                      if(_w>item.width-20){
+                        const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
+                        ctx.fillText(
+                          _txt,
+                          _x,
+                          i(15 + item.y)+2
+                        )
+                        // text = _txt
+                        item.paintText.length==1 && item.paintText.push(_txt)
+                        // item.Text = _txt
+                      }else{
+                        ctx.fillText(
+                          text,
+                          i(item.x)+i(_w/2)+10,
+                          i(15 + item.y)+2
+                        )
+                      }
+                    }
                   }else{
                     if(_w>item.width-20){
+                      const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
+                        // 超出的文本
                       ctx.fillText(
                         _txt,
                         _x,
                         i(15 + item.y)+2
                       )
-                      // text = _txt
-                      item.paintText.length==1 && item.paintText.push(_txt)
                       // item.Text = _txt
+                      item.paintText.length==1 && item.paintText.push(_txt)
                     }else{
                       ctx.fillText(
                         text,
@@ -677,22 +716,6 @@
                         i(15 + item.y)+2
                       )
                     }
-                  }
-                }else{
-                  if(_w>item.width-20){
-                    ctx.fillText(
-                      _txt,
-                      _x,
-                      i(15 + item.y)+2
-                    )
-                    // item.Text = _txt
-                    item.paintText.length==1 && item.paintText.push(_txt)
-                  }else{
-                    ctx.fillText(
-                      text,
-                      i(item.x)+i(_w/2)+10,
-                      i(15 + item.y)+2
-                    )
                   }
                 }
               }

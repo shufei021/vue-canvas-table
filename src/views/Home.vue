@@ -9,6 +9,7 @@
       :columnSet="columnSet"
       :left-height="200"
       :sortType="sortType"
+      :allStatsList="allStatsList"
       @sort="sort"
       @focus="focus"
       @updateValue="update"
@@ -133,39 +134,39 @@ export default {
           desc:'覆盖导入：采用覆盖导入，将清除已导入的全部数据，以这次数据为准重新导入。注意：当已经存在业务单据时，不允许再进行覆盖导入。差异导入：采用差异导入，系统会将本次获取的数据同之前导入的数据进行对比，只导入没有导入过的新数据。'
         }
       },
-      {
-        title: "采购价(元)",
-        key: "purchasePrice",
-        type: "number",
-        width: 150,
-        isTotal: true,
-        total: parseInt(Math.random()*10000)+'',
-        tip:{
-          img:tip,
-          size:14,
-          desc:'双击数量或者快捷键Ctrl+Enter可进行多单位录入操作'
-        }
-      },
-      {
-        title: "销售价(元)",
-        key: "salePrice",
-        type: "number",
-        width: 150,
-        isTotal: true,
-        total: parseInt(Math.random()*10000)+''
-      },
-      {
-        title: "货期",
-        width: 60,
-        key: "shipDesc"
-      },
-      {
-        title: "创建时间",
-        width: 180,
-        key: "createDate",
-        sort: "default",
-        isCloumnBg: true,
-      }
+      // {
+      //   title: "采购价(元)",
+      //   key: "purchasePrice",
+      //   type: "number",
+      //   width: 150,
+      //   isTotal: true,
+      //   total: parseInt(Math.random()*10000)+'',
+      //   tip:{
+      //     img:tip,
+      //     size:14,
+      //     desc:'双击数量或者快捷键Ctrl+Enter可进行多单位录入操作'
+      //   }
+      // },
+      // {
+      //   title: "销售价(元)",
+      //   key: "salePrice",
+      //   type: "number",
+      //   width: 150,
+      //   isTotal: true,
+      //   total: parseInt(Math.random()*10000)+''
+      // },
+      // {
+      //   title: "货期",
+      //   width: 60,
+      //   key: "shipDesc"
+      // },
+      // {
+      //   title: "创建时间",
+      //   width: 180,
+      //   key: "createDate",
+      //   sort: "default",
+      //   isCloumnBg: true,
+      // }
     ];
     this.columnsWidth = columns.reduce((p, c) => p + c.width, 0);
     const bodyWidth = this.columnsWidth + 59
@@ -175,12 +176,22 @@ export default {
     //   result.push({ title: "", width: emptyWidth, key: "empty" })
     // }
     return {
-      sortType:2,
+      sortType:1,
       columnSet: true,
       data: [],
       allFixedCells: [
         // { title: "品牌", key: "brandName", width: 80 },
         // { title: "商品名称", key: "goodsName", width: 150 }
+      ],
+      allStatsList: [
+        {
+          id: 'stats1',
+          index: ''
+        },
+        {
+          id: 'stats2',
+          index: '合计'
+        }
       ],
       columns: [
         ...result,
@@ -205,7 +216,7 @@ export default {
   },
   created() {
     this.data1 = [];
-    for (let i = 0; i < 2000; i += 1) {
+    for (let i = 0; i < 100; i += 1) {
       this.data1.push({
         brandName: `博世${i}`,
         goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
