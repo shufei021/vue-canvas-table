@@ -152,10 +152,7 @@
        // 绘制倒三角
        this.paintNo(ctx)
 
-      // this.paintFooter(ctx, displayColumns)
 
-      // 绘制底部表尾巴固定合计行
-      // this.paintTotal(ctx)
 
 
 
@@ -164,6 +161,11 @@
       }
 
       this.paintScroller(ctx, this.scrollerWidth)
+
+      this.paintFooter(ctx, displayColumns)
+
+      // 绘制底部表尾巴固定合计行
+      this.paintTotal(ctx)
     },
 
     // 绘制最后一列固定的单元格
@@ -184,6 +186,7 @@
       ctx.fillRect(p(maxPoint.x), p(0), i(fixedWidth + 1), i(bodyHeight))
       ctx.restore()
 
+      // 画线
       ctx.beginPath()
       ctx.fillStyle = this.textColor
       ctx.strokeStyle = this.borderColor
@@ -210,6 +213,7 @@
       }
       ctx.stroke()
 
+      // 列头
       ctx.beginPath()
       ctx.font = 'bold 12px PingFang SC'
       let columnX = maxPoint.x
@@ -345,8 +349,10 @@
       ctx.restore()
       // 首列
       ctx.lineWidth = 1
-      for (const item of displayRows) {
+
+      for (const [index,item] of displayRows.entries()) {
         if (15 + item.y > -item.height) {
+
           ctx.beginPath()
           ctx.strokeStyle = this.borderColor
           // 获取焦点单元格存在，或者 hover单元格存在
@@ -355,13 +361,14 @@
             ctx.fillRect(-1, item.y + 1, serialWidth + 1, item.height)
 
             if(this.sortType===1){
-              drawAddAndReduceCell(ctx,item.y + 1)
+              drawAddAndReduceCell.call(this,ctx,item.y + 1,item)
             }else{
               ctx.drawImage(this.arrowR, this.i(this.serialWidth/2) -10,item.y + (this.rowHeight - 20)/2, 20, 20)
+              ctx.strokeStyle = this.borderColor
+              ctx.moveTo(p(0), p(item.y + item.height))
+              ctx.lineTo(p(serialWidth), p(item.y + item.height))
+              ctx.stroke()
             }
-            ctx.moveTo(p(0), p(item.y + item.height))
-            ctx.lineTo(p(serialWidth), p(item.y + item.height))
-            ctx.stroke()
           }else{
             ctx.fillStyle = this.textColor
             ctx.font = 'normal 12px PingFang SC'
@@ -371,22 +378,28 @@
             ctx.stroke()
           }
 
+
+
         }
+
       }
-      if(this.allStatsList && this.allStatsList.length){
-        for(const item of this.allStatsList){
-          ctx.fillStyle = '#fff'
-          ctx.fillRect(0, 1017, this.width, this.rowHeight*2+4)
-          // console.log('%c [ item ]-543', 'font-size:13px; background:pink; color:#bf2c9f;', item)
-          // // ctx.fillStyle = this.textColor
-          // ctx.font = 'normal 12px PingFang SC'
-          // ctx.fillText(item.index, serialWidth / 2, 1020)
-          // ctx.moveTo(p(0), 1050)
-          // ctx.lineTo(p(serialWidth), 1050)
-          // ctx.stroke()
-        }
-      }
-      ctx.stroke()
+      // if(this.allStatsList && this.allStatsList.length){
+      //   const len = this.allStatsList.length
+      //   ctx.fillStyle = '#fff'
+      //   ctx.fillRect(0, this.height - 18 - 1- this.rowHeight*len, serialWidth, this.rowHeight*len)
+      //   for(const item of this.allStatsList){
+      //     // ctx.fillStyle = '#fff'
+      //     // ctx.fillRect(0, 1017, this.width, this.rowHeight*2+4)
+      //     // console.log('%c [ item ]-543', 'font-size:13px; background:pink; color:#bf2c9f;', item)
+      //     // // ctx.fillStyle = this.textColor
+      //     // ctx.font = 'normal 12px PingFang SC'
+      //     // ctx.fillText(item.index, serialWidth / 2, 1020)
+      //     // ctx.moveTo(p(0), 1050)
+      //     // ctx.lineTo(p(serialWidth), 1050)
+      //     // ctx.stroke()
+      //   }
+      // }
+      // ctx.stroke()
 
     },
 
@@ -399,7 +412,7 @@
       ctx.beginPath()
       ctx.strokeStyle = this.borderColor
       ctx.font = 'bold 12px PingFang SC'
-      ctx.lineWidth = 1
+      // ctx.lineWidth = 1
       if(this.sortCell){
         ctx.fillStyle = '#e9e9e9'
         ctx.fillRect(i(this.sortCell.x), 0, this.sortCell.width, rowHeight)
@@ -553,20 +566,20 @@
 
 
       // 合并
-      // ctx.beginPath()
-      // ctx.strokeStyle = this.borderColor
-      // ctx.fillStyle = '#fff'
-      // ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth, serialWidth, rowHeight)
+      ctx.beginPath()
+      ctx.strokeStyle = this.borderColor
+      ctx.fillStyle = '#fff'
+      ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth, serialWidth, rowHeight)
 
-      // ctx.fillStyle = this.headerColor
-      // ctx.fillText('合计', serialWidth / 2, this.height - this.rowHeight - this.scrollerWidth + this.rowHeight / 2)
-      // ctx.lineWidth = 1
-      // ctx.moveTo(p(serialWidth) - this.serialWidth, this.height - this.rowHeight - this.scrollerWidth)
+      ctx.fillStyle = this.headerColor
+      ctx.fillText('合计', serialWidth / 2, this.height - this.rowHeight - this.scrollerWidth + this.rowHeight / 2)
+      ctx.lineWidth = 1
+      ctx.moveTo(p(serialWidth) - this.serialWidth, this.height - this.rowHeight - this.scrollerWidth)
+      ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth)
       // ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth)
-      // // ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth)
-      // ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth + this.rowHeight)
-      // // ctx.lineTo(p(0), p(rowHeight))
-      // ctx.stroke()
+      ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth + this.rowHeight)
+      // ctx.lineTo(p(0), p(rowHeight))
+      ctx.stroke()
 
       // if (this.columnSet) {
       //     // (serialWidth - 16)/2
@@ -651,7 +664,7 @@
         ctx.fillStyle = this.textColor
         // 显示的单元格
         for (const [rowIndex,rows] of displayCells.entries() ) {
-          if( rowIndex===displayCells.length-1){
+          if( rowIndex===displayCells.length){
             // ctx.fillStyle = '#fff'
             // ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth, this.width, this.rowHeight)
           }else{
@@ -665,10 +678,8 @@
                 if (item.paintText && item.paintText.length) {
                   // 文本内容
                   const text = item.paintText[0]
-                  // 文本内容才canvas 的宽度
-                  const _w = ctx.measureText(text).width
-                  // 文本超出的 x值
-                  const _x = i(item.x + (item.width / 2))
+
+
 
                   // const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
                   // 如果当前单元格对应列是居中
@@ -679,9 +690,13 @@
                     }else if(column.isCheckbox){// 如果是复选框
                       ctx.drawImage(item.rowData[column.key]=='1'? this.checkedOn : this.checkedOff, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
                     }else{
-                        // 超出的文本
+                      // 文本内容才canvas 的宽度
+                      const _w = ctx.measureText(text).width
+                      // 超出的文本
                       if(_w>item.width-20){
                         const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
+                        // 文本超出的 x值
+                       const _x = i(item.x + (item.width / 2))-3
                         ctx.fillText(
                           _txt,
                           _x,
@@ -699,8 +714,12 @@
                       }
                     }
                   }else{
+                    // 文本内容才canvas 的宽度
+                    const _w = ctx.measureText(text).width
                     if(_w>item.width-20){
                       const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
+                      // 文本超出的 x值
+                      const _x = i(item.x + (item.width / 2))-3
                         // 超出的文本
                       ctx.fillText(
                         _txt,

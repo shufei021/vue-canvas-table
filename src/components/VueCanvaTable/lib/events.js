@@ -151,12 +151,11 @@ export default {
         const it = this.columns.find(i=>i.key===headerSortCell.key)
         if(item) {
           this.$emit('sort',item, [...cache])
-          setTimeout(() => {
+
             item.sort =['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
             it.sort = ['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
             this.allColumns = cache
             this.rePainted()
-          })
         }
       }
 
@@ -390,6 +389,12 @@ export default {
               this.tooltip = headerCellInfo.tip.desc
               this.tooltipStyle.left = this.i(headerCellInfo.tip.point.x + headerCellInfo.tip.size/2) + 'px'
               this.tooltipStyle.top = this.i(headerCellInfo.tip.point.y + headerCellInfo.tip.size-2) + 'px'
+            }else{
+              this.tooltip = ''
+              this.tooltipStyle = {
+                left:'-10000px',
+                top:'-10000px'
+              }
             }
           }
         }else{
@@ -412,18 +417,32 @@ export default {
               top:cell.y+cell.height - 4 +'px'
             }
             this.$emit('cellEllipsis',cell)
+          }else{
+            this.tooltip = ''
+            this.tooltipStyle = {
+              left:'-10000px',
+              top:'-10000px'
+            }
           }
+        }else{
+          // this.tooltip = ''
+          // this.tooltipStyle = {
+          //   left:'-10000px',
+          //   top:'-10000px'
+          // }
         }
 
       }
 
 
+        if(evt.target.tagName !== 'CANVAS'){
 
-        // this.tooltip = ''
-        // this.tooltipStyle = {
-        //   left:'-10000px',
-        //   top:'-10000px'
-        // }
+          this.tooltip = ''
+          this.tooltipStyle = {
+            left:'-10000px',
+            top:'-10000px'
+          }
+        }
         // if(['vertical','horizontalBar'].includes(evt.target.className)){
 
           // 纵向滚动

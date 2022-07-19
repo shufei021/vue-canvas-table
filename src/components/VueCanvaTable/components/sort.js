@@ -2,11 +2,11 @@
  * @Description:
  * @Author: shufei
  * @Date: 2022-07-11 15:23:04
- * @LastEditTime: 2022-07-12 11:18:17
+ * @LastEditTime: 2022-07-18 10:29:31
  * @LastEditors: shufei
  */
 // 画加减
-export const drawAddAndReduceCell = function(ctx,y1){
+export const drawAddAndReduceCell = function(ctx,y1,item){
   const x = 0
   const y = y1 + 1
   const gap = 2
@@ -33,7 +33,7 @@ export const drawAddAndReduceCell = function(ctx,y1){
   ctx.beginPath()
   ctx.moveTo(x + w / 2 - gap / 2 - btnWidth * 0.75, y + h / 2)
   ctx.lineTo(x + w / 2 - gap / 2 - btnWidth * 0.25, y + h / 2)
-  ctx.strokeStyle = '#595959'
+  ctx.strokeStyle = this.borderColor
   ctx.stroke()
 
   // 加号按钮
@@ -48,9 +48,11 @@ export const drawAddAndReduceCell = function(ctx,y1){
   ctx.lineTo(x + w / 2 + gap / 2 + btnWidth * 0.75, y + h / 2)
   ctx.moveTo(x + w / 2 + gap / 2 + btnWidth / 2, y + h / 2 - btnHeight / 4)
   ctx.lineTo(x + w / 2 + gap / 2 + btnWidth / 2, y + h / 2 + btnHeight / 4)
-  ctx.strokeStyle = '#595959'
-  ctx.stroke()
 
+  ctx.strokeStyle = this.borderColor
+  ctx.moveTo(this.p(0), this.p(item.y + item.height))
+  ctx.lineTo(this.p(this.serialWidth), this.p(item.y + item.height))
+  ctx.stroke()
   ctx.restore()
 
 }

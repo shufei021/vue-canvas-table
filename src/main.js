@@ -2,7 +2,7 @@
  * @Description:
  * @Author: shufei
  * @Date: 2022-06-28 15:38:47
- * @LastEditTime: 2022-07-11 10:09:25
+ * @LastEditTime: 2022-07-19 14:03:44
  * @LastEditors: shufei
  */
 // The Vue build version to load with the `import` command
@@ -15,7 +15,7 @@ import util from "rutilsjs"
 import 'ant-design-vue/dist/antd.css'
 Vue.config.productionTip = false
 
-Vue.use(Antd);
+// Vue.use(Antd);
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

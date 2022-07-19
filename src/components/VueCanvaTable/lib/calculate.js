@@ -11,7 +11,7 @@
     const height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
     let originPointX = serialWidth
 
-    const bottomFixedRows = 0
+    const bottomFixedRows = 2
     return {
       width: 0,
       height,
@@ -62,16 +62,15 @@
 
     this.height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
     this.maxPoint.y = this.height - this.scrollerWidth
-    console.log('%c [ this.maxPoint ]-67', 'font-size:13px; background:pink; color:#bf2c9f;', this.maxPoint)
 
     this.bodyWidth = this.originPoint.x
     for (const column of this.columns) {
       this.bodyWidth += column.width ? column.width : 100
     }
-    // if (this.bodyWidth < this.width - this.scrollerWidth) {
-    //   this.fillWidth = (this.width - this.bodyWidth - this.scrollerWidth) / this.columns.length
-    //   this.bodyWidth = this.width - this.scrollerWidth
-    // }
+    if (this.bodyWidth < this.width - this.scrollerWidth) {
+      this.fillWidth = (this.width - this.bodyWidth - this.scrollerWidth) / this.columns.length
+      this.bodyWidth = this.width - this.scrollerWidth
+    }
   },
   methods: {
     fullScreen () {
@@ -82,7 +81,7 @@
     initSize () {
       if (this.$refs.grid) {
         this.width = this.$refs.grid.offsetWidth - 2
-        this.height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
+        this.height = this.leftHeight ? window.innerHeight - this.leftHeight : 50
 
 
         this.originPoint.x = this.serialWidth

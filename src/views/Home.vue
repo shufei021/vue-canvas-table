@@ -134,39 +134,40 @@ export default {
           desc:'覆盖导入：采用覆盖导入，将清除已导入的全部数据，以这次数据为准重新导入。注意：当已经存在业务单据时，不允许再进行覆盖导入。差异导入：采用差异导入，系统会将本次获取的数据同之前导入的数据进行对比，只导入没有导入过的新数据。'
         }
       },
-      // {
-      //   title: "采购价(元)",
-      //   key: "purchasePrice",
-      //   type: "number",
-      //   width: 150,
-      //   isTotal: true,
-      //   total: parseInt(Math.random()*10000)+'',
-      //   tip:{
-      //     img:tip,
-      //     size:14,
-      //     desc:'双击数量或者快捷键Ctrl+Enter可进行多单位录入操作'
-      //   }
-      // },
-      // {
-      //   title: "销售价(元)",
-      //   key: "salePrice",
-      //   type: "number",
-      //   width: 150,
-      //   isTotal: true,
-      //   total: parseInt(Math.random()*10000)+''
-      // },
-      // {
-      //   title: "货期",
-      //   width: 60,
-      //   key: "shipDesc"
-      // },
-      // {
-      //   title: "创建时间",
-      //   width: 180,
-      //   key: "createDate",
-      //   sort: "default",
-      //   isCloumnBg: true,
-      // }
+      {
+        title: "采购价(元)",
+        key: "purchasePrice",
+        type: "number",
+        width: 150,
+        isTotal: true,
+        total: parseInt(Math.random()*10000)+'',
+        tip:{
+          img:tip,
+          size:14,
+          desc:'双击数量或者快捷键Ctrl+Enter可进行多单位录入操作'
+        }
+      },
+      {
+        title: "销售价(元)",
+        key: "salePrice",
+        type: "number",
+        width: 150,
+        isTotal: true,
+        total: parseInt(Math.random()*10000)+''
+      },
+      {
+        title: "货期",
+        width: 60,
+        key: "shipDesc",
+        isCloumnBg: true,
+      },
+      {
+        title: "创建时间",
+        width: 180,
+        key: "createDate",
+        sort: "default",
+
+      }
     ];
     this.columnsWidth = columns.reduce((p, c) => p + c.width, 0);
     const bodyWidth = this.columnsWidth + 59
@@ -195,7 +196,7 @@ export default {
       ],
       columns: [
         ...result,
-        // { title: "", width: emptyWidth, key: "empty" },
+        { title: "", width: emptyWidth, key: "empty" },
         // {
         //     title: '操作',
         //     width: 70,
