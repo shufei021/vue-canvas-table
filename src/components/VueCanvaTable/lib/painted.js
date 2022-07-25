@@ -136,13 +136,13 @@
       //  body border
       this.paintLine(ctx, displayRows, displayColumns)
 
-      // body content
+      // // body content
       this.paintBody(ctx, displayCells)
 
-      // focus cell
-      if (this.isFocus && this.focusCell) this.paintFocus(ctx, this.focusCell)
+      // // focus cell
+      // if (this.isFocus && this.focusCell) this.paintFocus(ctx, this.focusCell)
 
-      // 绘制表头
+      // // 绘制表头
       this.paintHeader(ctx, displayColumns)
 
 
@@ -418,6 +418,11 @@
         ctx.fillRect(i(this.sortCell.x), 0, this.sortCell.width, rowHeight)
       }
       for (const column of displayColumns) {
+        ctx.moveTo(p(column.x + column.width), p(0))
+        ctx.lineTo(p(column.x + column.width), p(rowHeight))
+        ctx.stroke()
+      }
+      for (const column of displayColumns) {
         if (!column.fixed || this.fillWidth > 0) {
           ctx.fillStyle = this.headerColor
           if(column.center){
@@ -466,10 +471,8 @@
               ctx.restore()
             }
           }
-          ctx.moveTo(p(column.x + column.width), p(0))
-          ctx.lineTo(p(column.x + column.width), p(rowHeight))
+
         }
-        ctx.stroke()
       }
     },
 

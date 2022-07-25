@@ -150,12 +150,12 @@ export default {
         const item = cache.find(i=>i.key===headerSortCell.key)
         const it = this.columns.find(i=>i.key===headerSortCell.key)
         if(item) {
+          console.log('%c [ item ]-153', 'font-size:13px; background:pink; color:#bf2c9f;', item)
           this.$emit('sort',item, [...cache])
-
-            item.sort =['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
-            it.sort = ['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
-            this.allColumns = cache
-            this.rePainted()
+          item.sort =['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
+          it.sort = ['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
+          this.allColumns = cache
+          this.rePainted()
         }
       }
 

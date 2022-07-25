@@ -72,7 +72,7 @@ export default {
         title: "品牌",
         key: "brandName",
         width: 80,
-        center: true
+        center: true,
       },
        {
         title: "图片",
@@ -160,6 +160,7 @@ export default {
         width: 60,
         key: "shipDesc",
         isCloumnBg: true,
+        // renderText:()=>'DSDSD'
       },
       {
         title: "创建时间",
@@ -196,20 +197,19 @@ export default {
       ],
       columns: [
         ...result,
-        { title: "", width: emptyWidth, key: "empty" },
-        // {
-        //     title: '操作',
-        //     width: 70,
-        //     fixed: true,
-        //     renderButton(rowData, index) {
-        //         return [{
-        //             title: '操作',
-        //             click() {
-        //                 console.log(rowData, index)
-        //             },
-        //         }]
-        //     },
-        // },
+        {
+            title: '操作',
+            width: 70,
+            // fixed: true,
+            renderButton(rowData, index) {
+                return [{
+                    title: '操作',
+                    click() {
+                        console.log(rowData, index)
+                    },
+                }]
+            },
+        },
       ],
       activeColumnsKey: "",
       customComponentKeys: ["customerRemarks", "brandName"]
