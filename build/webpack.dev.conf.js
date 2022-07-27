@@ -1,3 +1,10 @@
+/*
+ * @Description:
+ * @Author: shufei
+ * @Date: 2022-06-28 15:38:16
+ * @LastEditTime: 2022-07-26 16:04:22
+ * @LastEditors: shufei
+ */
 'use strict'
 const utils = require('./utils')
 const webpack = require('webpack')
@@ -58,13 +65,13 @@ const devWebpackConfig = merge(baseWebpackConfig, {
       inject: true
     }),
     // copy custom static assets
-    new CopyWebpackPlugin([
-      {
-        from: path.resolve(__dirname, '../static'),
-        to: config.dev.assetsSubDirectory,
-        ignore: ['.*']
-      }
-    ])
+    // new CopyWebpackPlugin([
+    //   {
+    //     from: path.resolve(__dirname, '../static'),
+    //     to: config.dev.assetsSubDirectory,
+    //     ignore: ['.*']
+    //   }
+    // ])
   ]
 })
 

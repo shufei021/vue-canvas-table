@@ -73,6 +73,11 @@ export default {
       this.hideInput()
       // 重置尺寸
       this.initSize()
+      if(this.offset.x!==0 || this.horizontalBar.x!==0){
+        this.offset.x = 0
+        this.horizontalBar.x = 0
+        requestAnimationFrame(this.rePainted)
+      }
     },
 
     /**
@@ -118,24 +123,25 @@ export default {
         }
         const { displayColumns } = this.initDisplayItems()
 
+        if(this.bottomFixedRows===2){
+          if (x > this.serialWidth && x < displayColumns.slice(0, 5).reduce((p, c) => p += c.width, this.serialWidth) && y > this.height - this.rowHeight - this.scrollerWidth - this.rowHeight && y < this.height - this.rowHeight - this.scrollerWidth) {
+            this.offset.x = 0
+            this.horizontalBar.x = 0
+            requestAnimationFrame(this.rePainted)
+            const width = this.initDisplayItems().displayColumns.slice(0, 5).reduce((p, c) => p += c.width, 0)
+            const height = this.rowHeight
+            const _x = this.serialWidth
+            const _y = this.height - this.rowHeight - this.scrollerWidth - this.rowHeight
+            this.isTotalVisible = true
+            this.showInput(_x, _y, width, height)
+            if (this.$refs.input) this.$refs.input.innerHTML = ''
+            this.isFocus = false
+            this.focusCell = null
+            this.isSelect = false
 
-        if (x > this.serialWidth && x < displayColumns.slice(0, 5).reduce((p, c) => p += c.width, this.serialWidth) && y > this.height - this.rowHeight - this.scrollerWidth - this.rowHeight && y < this.height - this.rowHeight - this.scrollerWidth) {
-          this.offset.x = 0
-          this.horizontalBar.x = 0
-          requestAnimationFrame(this.rePainted)
-          const width = this.initDisplayItems().displayColumns.slice(0, 5).reduce((p, c) => p += c.width, 0)
-          const height = this.rowHeight
-          const _x = this.serialWidth
-          const _y = this.height - this.rowHeight - this.scrollerWidth - this.rowHeight
-          this.isTotalVisible = true
-          this.showInput(_x, _y, width, height)
-          if (this.$refs.input) this.$refs.input.innerHTML = ''
-          this.isFocus = false
-          this.focusCell = null
-          this.isSelect = false
-
-        } else {
-          this.isTotalVisible = false
+          } else {
+            this.isTotalVisible = false
+          }
         }
       } else {
         this.isTotalVisible = false
@@ -150,7 +156,6 @@ export default {
         const item = cache.find(i=>i.key===headerSortCell.key)
         const it = this.columns.find(i=>i.key===headerSortCell.key)
         if(item) {
-          console.log('%c [ item ]-153', 'font-size:13px; background:pink; color:#bf2c9f;', item)
           this.$emit('sort',item, [...cache])
           item.sort =['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
           it.sort = ['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
@@ -217,8 +222,29 @@ export default {
     /**
      * 鼠标双击
      */
-    handleDoubleClick () {
+    handleDoubleClick (evt) {
+      if(evt.offsetX>0 && evt.offsetX<this.serialWidth)return
       if (this.focusCell) {
+        if(this.focusCell.y<this.rowHeight){
+          const diff = this.focusCell.y -this.rowHeight
+          this.offset.y = this.offset.y - diff
+          this.horizontalBar.y = Math.abs(this.offset.y + diff)
+          this.rePainted()
+        }else{
+          const limit = this.height - this.scrollerWidth - this.rowHeight*(this.bottomFixedRows+1)
+          console.log('%c [ this.focusCell.y ]-236', 'font-size:13px; background:pink; color:#bf2c9f;', this.focusCell.y, limit)
+          if( this.focusCell.y > limit ) {
+            const diff = this.focusCell.y - limit
+            this.offset.y = this.offset.y - diff
+            this.horizontalBar.y = Math.abs(this.offset.y + diff)
+            this.rePainted()
+            // const diff =  this.focusCell.y - limit
+            // this.offset.y =limit
+            // this.horizontalBar.y = Math.abs(this.offset.y + diff)
+            // this.rePainted()
+
+          }
+        }
         const column = this.columns.find(i=>i.key===this.focusCell.key)
         if(column && !column.disabled){
           // 并且不能是第一列
@@ -299,7 +325,6 @@ export default {
       // 鼠标hover在canvas
       if(evt.target.tagName === 'CANVAS') {
         hoverAddAndReduceCell.call(this,eX,eY)
-        // console.log('%c [ 鼠标移动 ]-237', 'font-size:13px; background:pink; color:#bf2c9f;',eX, eY,this.getCellIsEllipsis( eX, eY))
         // 列宽
         if(this.lineCell && this.isDown) {
           this.cloumnLineStyle.left = (this.i(evt.offsetX)===-1? this.cloumnLineStyle.left : this.i(evt.offsetX)) + 'px'
@@ -666,6 +691,7 @@ export default {
       this.horizontalBar.move = false
       // 重置纵向移动标识为false
       this.verticalBar.move = false
+      this.sortCell = null
     },
 
     /**

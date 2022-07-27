@@ -83,7 +83,7 @@
         <div class="tooltip-content">
             <div class="tooltip-arrow"></div>
             <div class="tooltip-inner">
-                <span style="text-align: center; display: inline-block;"> {{tooltip}} </span>
+                <span style="text-align: center; display: inline-block;word-break: wrap;"> {{tooltip}} </span>
             </div>
         </div>
     </div>
@@ -622,7 +622,7 @@ export default {
 
 
 .excel-table {
-  border: 1px solid #d4d4d4;
+  border: 1px solid #e8e8e8;
   position: relative;
   min-width: 714px;
 }
@@ -884,5 +884,6 @@ canvas {
     border-radius: 2px;
     // box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
     font-size: 12px;
+    word-break: wrap;
 }
 </style>

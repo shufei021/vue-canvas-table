@@ -161,11 +161,12 @@
       }
 
       this.paintScroller(ctx, this.scrollerWidth)
+      if(this.bottomFixedRows){
+        this.paintFooter(ctx, displayColumns)
+        //绘制底部表尾巴固定合计行
+        this.paintTotal(ctx)
+      }
 
-      this.paintFooter(ctx, displayColumns)
-
-      // 绘制底部表尾巴固定合计行
-      this.paintTotal(ctx)
     },
 
     // 绘制最后一列固定的单元格
@@ -478,12 +479,14 @@
 
     // 底部填充
     paintFooter (ctx, displayColumns) {
+      // return
       const { p, width, rowHeight } = this
 
       // 底部固定区域填充背景色，白色
       ctx.fillStyle = '#fff'
+      const y = p(this.height - this.rowHeight - this.scrollerWidth)
       // 底部固定矩形左边宽高（x，y，w，h）
-      ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth - this.rowHeight, width, rowHeight)
+      ctx.fillRect(0, y -(this.bottomFixedRows===1?0:this.rowHeight) , width, rowHeight)
       // 开始绘制
       ctx.beginPath()
       // 底部固定区域绘制的border 颜色
@@ -496,46 +499,44 @@
         if (!column.fixed || this.fillWidth > 0) {
           ctx.fillStyle = '#378efb'
 
-          const y = this.height - this.rowHeight - this.scrollerWidth
 
-          if(this.allColumns.slice(0,4).map(i=>i.key).includes(column.key)){
-            ctx.moveTo(p(column.x + column.width) - column.width, y - this.rowHeight)
-            ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
-            if(this.allColumns[0].key===column.key &&index===0){
+
+          if(this.allColumns.slice(0,4).map(i=>i.key).includes(column.key) && this.bottomFixedRows===2){
+            ctx.moveTo(p(column.x + column.width- column.width) , p(y - this.rowHeight))
+            ctx.lineTo(p(column.x + column.width), p(y - this.rowHeight))
+
+            if(this.allColumns[0].key===column.key && index===0){
               ctx.fillStyle = '#bfbfbf'
               ctx.fillText('请输入商品名称/编号/条码', p(column.x)  +this.i(ctx.measureText('请输入商品名称/编号/条码').width/2)  + 10, y - this.rowHeight / 2 + 2)
             }else if(this.allColumns[1].key===column.key && index===0){
               ctx.fillStyle = '#bfbfbf'
               ctx.fillText('请输入商品名称/编号/条码', p(displayColumns[0].x)  +this.i(ctx.measureText('请输入商品名称/编号/条码').width/2) + 10 +this.offset.x, y - this.rowHeight / 2 + 2)
-            }
-            // if (index === 4) { //
-            //   ctx.fillStyle = '#bfbfbf'
-            //   ctx.fillText('请输入商品名称/编号/条码', p(displayColumns[0].x+this.offset.x)  +this.i(ctx.measureText('请输入商品名称/编号/条码').width/2)  + 10, y - this.rowHeight / 2 + 2)
-            //   // 合并前4列表
-            //   ctx.moveTo(p(displayColumns[0].x), y - this.rowHeight)
-            //   ctx.lineTo(p(column.x + column.width) - column.width, y - this.rowHeight)
-            //   ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
-            //   ctx.lineTo(p(column.x + column.width), y)
-            // } else if(index>4) {
-            //   ctx.moveTo(p(column.x + column.width) - column.width, y - this.rowHeight)
-            //   ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
-            //   ctx.lineTo(p(column.x + column.width), y)
-            // }
-          } else {
-                ctx.moveTo(p(column.x + column.width) - column.width, y - this.rowHeight)
+            }else{
+              if(index === displayColumns.length - 1) {
+                ctx.moveTo(p(column.x + column.width- column.width) , y - this.rowHeight)
                 ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
                 ctx.lineTo(p(column.x + column.width), y)
+
+                ctx.moveTo(p(column.x + column.width- column.width) , y - this.rowHeight)
+                ctx.lineTo(p(this.maxPoint.x), y - this.rowHeight)
+
+                ctx.moveTo(p(column.x + column.width - column.width) , y)
+                ctx.lineTo(p(this.maxPoint.x), y)
+              }
+            }
+
+          } else {
+            if(this.bottomFixedRows===2){
+              ctx.moveTo(p(column.x + column.width- column.width) , y - this.rowHeight)
+              ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
+              ctx.lineTo(p(column.x + column.width), y)
+            }else{
+              ctx.moveTo(p(column.x + column.width - column.width) , y)
+              ctx.lineTo(p(this.maxPoint.x), y)
+            }
           }
 
-
-
-
-          // index ===0 &&  ctx.fillText('请输入', p(column.x)  +this.i(ctx.measureText('请输入').width/2)  + 10, y - this.rowHeight / 2 + 2)
-          // ctx.moveTo(p(column.x + column.width) - column.width, y - this.rowHeight)
-          // ctx.lineTo(p(column.x + column.width), y - this.rowHeight)
-          //   ctx.lineTo(p(column.x + column.width), y)
-          ctx.fillText(column.isTotal ? column.total : '', p(column.x)  +this.i(ctx.measureText(column.total).width/2)  + 10, y + (this.rowHeight / 2)+2)
-
+          ctx.fillText(column.isTotal ? column.total : '', p(column.x)  + this.i(ctx.measureText(column.total).width/2 + 10)  , y + (this.rowHeight / 2+2))
           ctx.moveTo(p(column.x + column.width) - column.width, y)
           ctx.lineTo(p(column.x + column.width), y)
           ctx.lineTo(p(column.x + column.width), y + this.rowHeight)
@@ -552,44 +553,33 @@
         serialWidth // 左上角表格宽度
       } = this
 
-      ctx.beginPath()
-      ctx.strokeStyle = this.borderColor
-      ctx.fillStyle = '#fff'
-      ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth - this.rowHeight, serialWidth, rowHeight)
-
-      ctx.fillStyle = this.headerColor
-      // ctx.fillText('合并', serialWidth / 2, this.height - this.rowHeight - this.scrollerWidth + this.rowHeight/2 - this.rowHeight)
-      ctx.lineWidth = 1
-      ctx.moveTo(p(serialWidth) - this.serialWidth, this.height - this.rowHeight - this.scrollerWidth - this.rowHeight)
-      ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth - this.rowHeight)
-      // ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth)
-      ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth + this.rowHeight - this.rowHeight)
-      // ctx.lineTo(p(0), p(rowHeight))
-      ctx.stroke()
-
+      if(this.bottomFixedRows===2){
+        ctx.beginPath()
+        ctx.strokeStyle = this.borderColor
+        ctx.fillStyle = '#fff'
+        const y = p(this.height - this.rowHeight - this.scrollerWidth - this.rowHeight)
+        ctx.fillRect(0, y, serialWidth, rowHeight)
+        ctx.fillStyle = this.headerColor
+        ctx.lineWidth = 1
+        ctx.moveTo(p(serialWidth - this.serialWidth) , y)
+        ctx.lineTo(p(serialWidth), y)
+        ctx.lineTo(p(serialWidth), y + this.rowHeight)
+        ctx.stroke()
+      }
 
       // 合并
       ctx.beginPath()
       ctx.strokeStyle = this.borderColor
       ctx.fillStyle = '#fff'
-      ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth, serialWidth, rowHeight)
-
+      const _y =p(this.height - this.rowHeight - this.scrollerWidth)
+      ctx.fillRect(0, _y, serialWidth, rowHeight)
       ctx.fillStyle = this.headerColor
-      ctx.fillText('合计', serialWidth / 2, this.height - this.rowHeight - this.scrollerWidth + this.rowHeight / 2)
+      ctx.fillText('合计', serialWidth / 2, _y + this.rowHeight / 2)
       ctx.lineWidth = 1
-      ctx.moveTo(p(serialWidth) - this.serialWidth, this.height - this.rowHeight - this.scrollerWidth)
-      ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth)
-      // ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth)
-      ctx.lineTo(p(serialWidth), this.height - this.rowHeight - this.scrollerWidth + this.rowHeight)
-      // ctx.lineTo(p(0), p(rowHeight))
+      ctx.moveTo(p(serialWidth) - this.serialWidth, _y)
+      ctx.lineTo(p(serialWidth), _y)
+      ctx.lineTo(p(serialWidth), _y + this.rowHeight)
       ctx.stroke()
-
-      // if (this.columnSet) {
-      //     // (serialWidth - 16)/2
-      //     ctx.drawImage(setting, (serialWidth - settingWidth) / 2, (rowHeight - settingHeight) / 2, settingWidth, settingHeight)
-      //     // console.log('%c [ serialWidth ]-361', 'font-size:13px; background:pink; color:#bf2c9f;', serialWidth)
-      //     // console.log('%c [ rowHeight ]-351', 'font-size:13px; background:pink; color:#bf2c9f;', rowHeight)
-      // }
     },
 
     paintBodyRowHover (cell) {
@@ -667,10 +657,7 @@
         ctx.fillStyle = this.textColor
         // 显示的单元格
         for (const [rowIndex,rows] of displayCells.entries() ) {
-          if( rowIndex===displayCells.length){
-            // ctx.fillStyle = '#fff'
-            // ctx.fillRect(0, this.height - this.rowHeight - this.scrollerWidth, this.width, this.rowHeight)
-          }else{
+
             for (const  item of rows) {
 
               // 找到单元格对应的列
@@ -681,10 +668,6 @@
                 if (item.paintText && item.paintText.length) {
                   // 文本内容
                   const text = item.paintText[0]
-
-
-
-                  // const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
                   // 如果当前单元格对应列是居中
                   if(column.center){
                     // 如果是渲染图片
@@ -698,8 +681,9 @@
                       // 超出的文本
                       if(_w>item.width-20){
                         const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
+                        const _w_txt = ctx.measureText(_txt).width
                         // 文本超出的 x值
-                       const _x = i(item.x + (item.width / 2))-3
+                       const _x = i(item.x + (_w_txt / 2)+10)
                         ctx.fillText(
                           _txt,
                           _x,
@@ -721,8 +705,9 @@
                     const _w = ctx.measureText(text).width
                     if(_w>item.width-20){
                       const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
+                      const _w_txt = ctx.measureText(_txt).width
                       // 文本超出的 x值
-                      const _x = i(item.x + (item.width / 2))-3
+                      const _x = i(item.x + (_w_txt / 2)+10)
                         // 超出的文本
                       ctx.fillText(
                         _txt,
@@ -742,7 +727,6 @@
                 }
               }
             }
-          }
         }
         ctx.stroke()
     },

@@ -32,8 +32,9 @@
         </div>
       </template>
     </VueCanvaTable>
-    <!-- <a-button type="primary">添加100</a-button>
-    <a-button>删除1条</a-button> -->
+
+    <button @click="add(0)">添加100条</button>
+    <button @click="add(1)">添加1000条</button>
   </div>
 </template>
 
@@ -71,7 +72,7 @@ export default {
       {
         title: "品牌",
         key: "brandName",
-        width: 80,
+        width: 190,
         center: true,
       },
        {
@@ -125,7 +126,7 @@ export default {
       {
         title: "客户备注",
         key: "customerRemarks",
-        width: 150,
+        width: 350,
         sort: "default",
         isCloumnBg: true,
         tip:{
@@ -138,7 +139,7 @@ export default {
         title: "采购价(元)",
         key: "purchasePrice",
         type: "number",
-        width: 150,
+        width: 350,
         isTotal: true,
         total: parseInt(Math.random()*10000)+'',
         tip:{
@@ -167,16 +168,10 @@ export default {
         width: 180,
         key: "createDate",
         sort: "default",
-
       }
     ];
     this.columnsWidth = columns.reduce((p, c) => p + c.width, 0);
-    const bodyWidth = this.columnsWidth + 59
-    const emptyWidth =window.innerWidth-20-20 - bodyWidth;
     const result = [...columns]
-    // if(emptyWidth>0){
-    //   result.push({ title: "", width: emptyWidth, key: "empty" })
-    // }
     return {
       sortType:1,
       columnSet: true,
@@ -197,19 +192,19 @@ export default {
       ],
       columns: [
         ...result,
-        {
-            title: '操作',
-            width: 70,
-            // fixed: true,
-            renderButton(rowData, index) {
-                return [{
-                    title: '操作',
-                    click() {
-                        console.log(rowData, index)
-                    },
-                }]
-            },
-        },
+        // {
+        //     title: '操作',
+        //     width: 70,
+        //     // fixed: true,
+        //     renderButton(rowData, index) {
+        //         return [{
+        //             title: '操作',
+        //             click() {
+        //                 console.log(rowData, index)
+        //             },
+        //         }]
+        //     },
+        // },
       ],
       activeColumnsKey: "",
       customComponentKeys: ["customerRemarks", "brandName"]
@@ -219,7 +214,7 @@ export default {
     this.data1 = [];
     for (let i = 0; i < 100; i += 1) {
       this.data1.push({
-        brandName: `博世${i}`,
+        brandName: `111111111111博世${i}`,
         goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
         goodsPreview:'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/400/h/400',
         goodsName: `电钻${i}`,
@@ -249,17 +244,66 @@ export default {
   mounted() {
     this.$nextTick(() => {
       setTimeout(() => {
-        this.data = this.data1;
+        this.data = [...this.data1];
+        this.chacheData = this.data1.map(i=>{
+          return {
+            ...i
+          }
+        })
       },300)
     });
   },
   methods: {
-
+    add(flag){
+      const count = flag?1000:100
+      this.data1 = [];
+      for (let i = 0; i < count; i += 1) {
+        this.data1.push({
+          brandName: `111111111111博世${i+this.data.length}`,
+          goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
+          goodsPreview:'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/400/h/400',
+          goodsName: `电钻${i}`,
+          gift: Math.random() > 0.5?'0':'1',
+          sn: `${'SDFSDSDFSDSDFSDSDFSD'.slice(0,Math.round(Math.random()*20))}${i}`,
+          materialNo: i + this.data.length,
+          unit: "个",
+          requiredQuantity: 10,
+          customerRemarks: `${'测试测试测试测测测测测测测测测测测测试测试'.slice(0,Math.round(Math.random()*21))}${i}`,
+          purchasePrice: 10.2,
+          salePrice: 12.3,
+          shipDesc: 10,
+          createDate: dateRangeRandom(),
+          image:(()=>{
+            const img = new Image()
+            img.src = 'https://test-1251330838.cos.ap-chengdu.myqcloud'+(Math.random() > 0.5?'1':'')+'.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40'
+            img.state = 1
+            img.onerror= ()=>{
+              img.state = 0
+              img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAA8lJREFUWEftVl1oHFUU/s7MJqQRNbHYokj8K/VBQY2IUpD681BsMUqUIrEU64MQ4u6cnQQNopiCEH82O2dmy4IPUUFKH6T4U0FRwSIVX6rQ1r8Hf1oQKtYHK4qyZubICTvbybKJE0kpSA5cds/c757z3XPPOfcSzrHQOfaPVQL/rwgw8yCA70Xk17y5tSAC5XL5oiRJniKiGwH0Alijqr1EtMaG/QdwRERuyToYHx+/PI7jCoAHmt//BvBtc3wH4ASA43EcH6vVaqa3ZAEBZj4M4CYAB5fYwYiInGyfHxsbW9vd3X01gKtU1X43AriGiDaqan8GPyUiu1O9RcDzvCEiegvALhF5NW8I8+CY+ZImsceI6EHHce6pVqvv2NoWAWaeAvBMX1+fOzU1leQxvFwMM18B4AcAu0XE/J0hUC6XJ1V1utFonF+v139frvEUz8x3A4gAfJ0kyQtRFB1K5+yYurq6flHVyTAMn2+PAAMICoXC+kql8vN/IeB53noi+imz9qCI3JHqpVJpk+M4nziOs71arb7eTmAUQB3AlSJy3CaZedgqIgiCp/MQYuZHAbyUwZ4SkXWZ6DwM4BUiujkIAkv4BUewS1Vfdl332pmZma98378rSZJ3AXSp6p4wDIs5SWiKU9V6GIZjqe553jQRTcZxvK5Wq51qJzCiqnuNnU2o6gcA+jJOXxORnTlJPERER4MgOJbFM/N+AHeKSKsss1UwDGC/qm4mon0ALu3g7ICIDOUh0QnDzF+oaiMMQ+uY85IlsA2A1aZ1sA1LOPlYRDZ3mh8dHe3v6enZoqp/icib7RhmbhDR20EQpB3zDIHmmX+Yc3dHReT6LNb3/ftV1VfVTc3v+0RkJMUUi8ULXNc9TUQvBkHweKcI3A7go5wEDHZCRKyxzEvTwecArA2n8qSITJvi+/6tSZJ8qqrFMAz3rAQBs3FaRFqJ6nneFiJ6L7uJJEmGoyh6g5kfATBLRENBEBxYKQJm50vXdbdb6ZqStvQMiZOO42yL49gqY9xxnBuq1eqRlSJghu6zxlUqla5zHOdZAPd2OMb3AcQArE33Z98L2SpYbg78GMfxoDUUZra1s3bjLZFD9iZwRGQgi8lex3Z3f5MzCf8sFAoXVyqVP5rZP6uqF+ZYe0hEbutIoHl+VgW2myVFROaJl8vl51T1iX/DZ+Z3iMjeRQl4nmdR8AFsBXDZIoa3iojdEZZwg0S0QVUtrPODiAaa+trM+t8AWBfd0W7zrL2KJyYmzpubmxtIkqQ3iqLPFovSWSOQ91hWCaxG4B9GTIgwQGH5cAAAAABJRU5ErkJggg=='
+            }
+            return img
+          })()
+        });
+      }
+      this.data.push(...this.data1)
+    },
     /**
      * @description 排序
      * @param {Object} item :点击的排序对象
      */
     sort(item) {
+      // console.log('%c [ this.chacheData ]-292', 'font-size:13px; background:pink; color:#bf2c9f;', this.chacheData.map(i=>i.materialNo))
+      this.data = this.chacheData.map(i=>{
+          return {
+            ...i
+          }
+        })
+      this.columns.forEach(column =>{
+        if(column.sort && column.sort!== "default"){
+          column.sort = 'default'
+        }
+      })
+
       if (item.key === "materialNo") {
         // 物料编码
         if (item.sort == "up") {
@@ -357,5 +401,6 @@ body {
   padding-top: 50px;
   box-sizing: border-box;
   padding:0 10px;
+  transform:translateY(50px);
 }
 </style>

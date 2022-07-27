@@ -2,12 +2,18 @@
  * @Description: 行（row） 的 hover 效果
  * @Author: shufei
  * @Date: 2022-07-05 16:36:08
- * @LastEditTime: 2022-07-06 15:16:13
+ * @LastEditTime: 2022-07-27 11:01:05
  * @LastEditors: shufei
  */
 
 
-export default function hover({ offsetX: x, offsetY: y }) {
+export default function hover({ offsetX: x, offsetY: y , target}) {
+  if(target && target.tagName!=='CANVAS' ){
+    this.hoverCell = null;
+    this.rowHover = null;
+    this.focusCell = null;
+    return this.repaint();
+  }
   // body cell
   const bodyCell = this.getCellAt(x, y);
   // 如果bodyCell 存在就说明hover body区域

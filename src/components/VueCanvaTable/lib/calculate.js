@@ -61,16 +61,16 @@
     this.width = this.$refs.grid.offsetWidth - 2
 
     this.height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
-    this.maxPoint.y = this.height - this.scrollerWidth
+    this.maxPoint.y = this.height - this.scrollerWidth - this.bottomFixedRows*this.rowHeight
 
     this.bodyWidth = this.originPoint.x
     for (const column of this.columns) {
       this.bodyWidth += column.width ? column.width : 100
     }
-    if (this.bodyWidth < this.width - this.scrollerWidth) {
-      this.fillWidth = (this.width - this.bodyWidth - this.scrollerWidth) / this.columns.length
-      this.bodyWidth = this.width - this.scrollerWidth
-    }
+    // if (this.bodyWidth < this.width - this.scrollerWidth) {
+    //   this.fillWidth = (this.width - this.bodyWidth - this.scrollerWidth) / this.columns.length
+    //   this.bodyWidth = this.width - this.scrollerWidth
+    // }
   },
   methods: {
     fullScreen () {
@@ -160,7 +160,7 @@
         for (const column of columns) {
           if (rowIndex === 0) {
             if (column.fixed) {
-              this.fixedWidth += column.width
+              // this.fixedWidth += column.width
               fixedColumns.push({
                 cellIndex,
                 ...column
@@ -525,6 +525,13 @@
       for (const rows of this.displayCells) {
         for (const cell of rows) {
           if (x >= cell.x && y >= cell.y && x <= cell.x + cell.width && y <= cell.y + cell.height) {
+            return Object.assign({}, cell, { offset: { ...this.offset } })
+          }
+        }
+      }
+      for (const rows of this.displayCells) {
+        for (const cell of rows) {
+          if (x <this.maxPoint.x && y >= cell.y && y <= cell.y + cell.height) {
             return Object.assign({}, cell, { offset: { ...this.offset } })
           }
         }
