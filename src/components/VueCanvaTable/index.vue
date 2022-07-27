@@ -180,30 +180,34 @@ export default {
     }
   },
   watch: {
+    /**
+     * 数据源发生变化
+     */
     dataSource:{
       handler(value) {
-        console.log('%c [ dataSource改变了 ]-179', 'font-size:13px; background:pink; color:#bf2c9f;')
         this.data = [...value]
         this.initCanvas()
-        // this.painted(this.initDisplayItems())
         this.initEvent()
-        // setTimeout(() => {
-          this.rePainted()
-        // },16)
+        this.rePainted()
       },
       deep:true
     },
-    // 列宽改变需要重新初始化
+
+    /**
+     * 表头字段列表变化
+     */
     columns:{
       handler(){
         this.initCanvas()
-        // this.painted(this.initDisplayItems())
         this.initEvent()
-          this.rePainted()
-          this.bodyWidth = this.originPoint.x
-           for (const column of this.columns) {
-            this.bodyWidth += column.width ? column.width : 100
-          }
+        // 宽改变需要重新初始化，重新统计宽度
+        this.bodyWidth = this.originPoint.x
+        for (const column of this.columns) {
+          this.bodyWidth += column.width ? column.width : 100
+        }
+        // 宽改变需要重新初始化
+        this.resetScrollBar(this.maxPoint, this.bodyWidth, this.bodyHeight, this.fixedWidth)
+        requestAnimationFrame(this.rePainted)
       },
       deep:true
     }

@@ -156,6 +156,7 @@ export default {
         const item = cache.find(i=>i.key===headerSortCell.key)
         const it = this.columns.find(i=>i.key===headerSortCell.key)
         if(item) {
+          this.focusCell = null
           this.$emit('sort',item, [...cache])
           item.sort =['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
           it.sort = ['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
@@ -213,8 +214,8 @@ export default {
           this.paintFocusCell(this.focusCell)
         }
       }
-      // 赠品
-      if(this.hoverCheckGiftCell)this.$emit('checkboxClick',this.hoverCheckGiftCell)
+      // 选择
+      if(this.hoverCheckboxCell)this.$emit('checkboxClick',this.hoverCheckboxCell)
 
 
     },
@@ -232,17 +233,11 @@ export default {
           this.rePainted()
         }else{
           const limit = this.height - this.scrollerWidth - this.rowHeight*(this.bottomFixedRows+1)
-          console.log('%c [ this.focusCell.y ]-236', 'font-size:13px; background:pink; color:#bf2c9f;', this.focusCell.y, limit)
           if( this.focusCell.y > limit ) {
             const diff = this.focusCell.y - limit
             this.offset.y = this.offset.y - diff
             this.horizontalBar.y = Math.abs(this.offset.y + diff)
             this.rePainted()
-            // const diff =  this.focusCell.y - limit
-            // this.offset.y =limit
-            // this.horizontalBar.y = Math.abs(this.offset.y + diff)
-            // this.rePainted()
-
           }
         }
         const column = this.columns.find(i=>i.key===this.focusCell.key)
@@ -355,36 +350,23 @@ export default {
           this.hoverCheckGiftCell = null
           if(cell){
             // console.log('%c [ cell ]-309', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
-            if(cell.key === "goodsCover" && cell.rowData && cell.rowData.image&&cell.rowData.image.state){
+            if(cell.column.isImage  && cell.rowData && cell.rowData.image&&cell.rowData.image.state){
               this.previeStyle = {
                 left:cell.x +Math.round(cell.width/2) - 10 +'px',
                 top:cell.y+Math.round(cell.height/2) - 10+'px',
               }
               this.previeUrl = cell.rowData.goodsPreview
-              // if(
-              //   x>=cell.x+(cell.width-20)/2 &&
-              //   x<=cell.x+cell.width/2+10 &&
-              //   y>=cell.y - 10 &&
-              //   y<=cell.y + cell.height/2+10
-              // ){
-              //   //  图片 hover $emit
-              //   // console.log(cell)
-              //   // this.previeStyle = {
-              //   //   left:cell.x +Math.round(cell.width/2) - 10 +'px',
-              //   //   top:cell.y+Math.round(cell.height/2) - 10+'px',
-              //   // }
-              //   // this.previeUrl = cell.rowData.goodsPreview
-              // }
-            } else if ( cell.key === "gift"){
+            } else if ( cell.column.isCheckbox){
+              this.hoverCheckboxCell = null
                if(
                 x>=cell.x+(cell.width-20)/2 &&
                 x<=cell.x+cell.width/2+10 &&
                 y>=cell.y - 10 &&
                 y<=cell.y + cell.height/2+10
               ){
-                this.hoverCheckGiftCell = cell
+                this.hoverCheckboxCell = cell
               }else{
-                this.hoverCheckGiftCell = null
+                this.hoverCheckboxCell = null
               }
             } else{
               this.previeStyle = {

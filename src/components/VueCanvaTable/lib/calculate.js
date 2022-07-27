@@ -407,7 +407,7 @@
             cell = setCellRenderText(cell)
           }
 
-          const cellClone = Object.assign({}, cell, { x: column.x, y: row.y, width: cell.width + fillWidth, height: row.height }) //eslint-disable-line
+          const cellClone = Object.assign({}, cell, { column, x: column.x, y: row.y, width: cell.width + fillWidth, height: row.height }) //eslint-disable-line
           cellTemp.push(cellClone)
         }
         temp.push(cellTemp)

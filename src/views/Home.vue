@@ -35,6 +35,7 @@
 
     <button @click="add(0)">添加100条</button>
     <button @click="add(1)">添加1000条</button>
+    <button @click="change">改变</button>
   </div>
 </template>
 
@@ -69,7 +70,16 @@ export default {
   data() {
 
     const columns = [
+
       {
+        center: true,
+        title: "赠品",
+        key: "gift",
+        width: 48,
+        isCheckbox:true,
+        disabled:true
+      },
+       {
         title: "品牌",
         key: "brandName",
         width: 190,
@@ -83,14 +93,15 @@ export default {
         isImage:true,
         disabled:true
       },
-      {
+       {
         center: true,
-        title: "赠品",
-        key: "gift",
+        title: "选择",
+        key: "check",
         width: 48,
         isCheckbox:true,
         disabled:true
       },
+
       {
         title: "商品名称",
         key: "goodsName",
@@ -215,10 +226,9 @@ export default {
     for (let i = 0; i < 100; i += 1) {
       this.data1.push({
         brandName: `111111111111博世${i}`,
-        goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
-        goodsPreview:'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/400/h/400',
         goodsName: `电钻${i}`,
         gift: Math.random() > 0.5?'0':'1',
+        check:  Math.random() > 0.5?'0':'1',
         sn: `${'SDFSDSDFSDSDFSDSDFSD'.slice(0,Math.round(Math.random()*20))}${i}`,
         materialNo: i + 1,
         unit: "个",
@@ -228,6 +238,8 @@ export default {
         salePrice: 12.3,
         shipDesc: 10,
         createDate: dateRangeRandom(),
+        goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
+        goodsPreview:'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/400/h/400',
         image:(()=>{
           const img = new Image()
           img.src = 'https://test-1251330838.cos.ap-chengdu.myqcloud'+(Math.random() > 0.5?'1':'')+'.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40'
@@ -254,6 +266,9 @@ export default {
     });
   },
   methods: {
+    change(){
+      this.columns.find(i=>i.isTotal).total =  parseInt(Math.random()*10000)+''
+    },
     add(flag){
       const count = flag?1000:100
       this.data1 = [];
