@@ -10,7 +10,6 @@
       :left-height="200"
       :sortType="sortType"
       :allStatsList="allStatsList"
-      @sort="sort"
       @focus="focus"
       @updateValue="update"
       @sortReduce="sortReduce"
@@ -93,19 +92,19 @@ export default {
         isImage:true,
         disabled:true
       },
-       {
-        center: true,
-        title: "选择",
-        key: "check",
-        width: 48,
-        isCheckbox:true,
-        disabled:true
-      },
+      //  {
+      //   center: true,
+      //   title: "选择",
+      //   key: "check",
+      //   width: 48,
+      //   isCheckbox:true,
+      //   disabled:true
+      // },
 
       {
         title: "商品名称",
         key: "goodsName",
-        width: 100
+        width: 150
       },
       {
         title: "规格型号",
@@ -116,14 +115,14 @@ export default {
         title: "物料编码",
         key: "materialNo",
         width: 150,
+        isCloumnBg: true,
         sort: "default",
-        isCloumnBg: true
+        sorter:(a, b) => +b.materialNo - a.materialNo
       },
       {
         title: "单位",
         key: "unit",
         width: 70,
-        sort: "default",
         isCloumnBg: true
       },
       {
@@ -137,20 +136,21 @@ export default {
       {
         title: "客户备注",
         key: "customerRemarks",
-        width: 350,
-        sort: "default",
+        width: 150,
         isCloumnBg: true,
         tip:{
           img:tip,
           size:14,
           desc:'覆盖导入：采用覆盖导入，将清除已导入的全部数据，以这次数据为准重新导入。注意：当已经存在业务单据时，不允许再进行覆盖导入。差异导入：采用差异导入，系统会将本次获取的数据同之前导入的数据进行对比，只导入没有导入过的新数据。'
-        }
+        },
+          sort: "default",
+          sorter: (a, b) => a.customerRemarks.length - b.customerRemarks.length
       },
       {
         title: "采购价(元)",
         key: "purchasePrice",
         type: "number",
-        width: 350,
+        width: 150,
         isTotal: true,
         total: parseInt(Math.random()*10000)+'',
         tip:{
@@ -163,7 +163,7 @@ export default {
         title: "销售价(元)",
         key: "salePrice",
         type: "number",
-        width: 150,
+        width: 550,
         isTotal: true,
         total: parseInt(Math.random()*10000)+''
       },
@@ -179,6 +179,7 @@ export default {
         width: 180,
         key: "createDate",
         sort: "default",
+        sorter:(a,b)=> new Date(b.createDate) - new Date(a.createDate)
       }
     ];
     this.columnsWidth = columns.reduce((p, c) => p + c.width, 0);
@@ -228,7 +229,7 @@ export default {
         brandName: `111111111111博世${i}`,
         goodsName: `电钻${i}`,
         gift: Math.random() > 0.5?'0':'1',
-        check:  Math.random() > 0.5?'0':'1',
+        // check:  Math.random() > 0.5?'0':'1',
         sn: `${'SDFSDSDFSDSDFSDSDFSD'.slice(0,Math.round(Math.random()*20))}${i}`,
         materialNo: i + 1,
         unit: "个",
@@ -237,6 +238,7 @@ export default {
         purchasePrice: 10.2,
         salePrice: 12.3,
         shipDesc: 10,
+        id:utils.guid(),
         createDate: dateRangeRandom(),
         goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
         goodsPreview:'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/400/h/400',
@@ -262,7 +264,7 @@ export default {
             ...i
           }
         })
-      },300)
+      },1000)
     });
   },
   methods: {
@@ -287,6 +289,7 @@ export default {
           purchasePrice: 10.2,
           salePrice: 12.3,
           shipDesc: 10,
+          id:utils.guid(),
           createDate: dateRangeRandom(),
           image:(()=>{
             const img = new Image()
@@ -301,60 +304,6 @@ export default {
         });
       }
       this.data.push(...this.data1)
-    },
-    /**
-     * @description 排序
-     * @param {Object} item :点击的排序对象
-     */
-    sort(item) {
-      // console.log('%c [ this.chacheData ]-292', 'font-size:13px; background:pink; color:#bf2c9f;', this.chacheData.map(i=>i.materialNo))
-      this.data = this.chacheData.map(i=>{
-          return {
-            ...i
-          }
-        })
-      this.columns.forEach(column =>{
-        if(column.sort && column.sort!== "default"){
-          column.sort = 'default'
-        }
-      })
-
-      if (item.key === "materialNo") {
-        // 物料编码
-        if (item.sort == "up") {
-          this.data.sort((a, b) => +a.materialNo - b.materialNo);
-        } else {
-          this.data.sort((a, b) => +b.materialNo - a.materialNo);
-        }
-      } else if (item.key === "customerRemarks") {
-        // 客户备注
-        if (item.sort == "up") {
-          this.data.sort(
-            (a, b) => a.customerRemarks.length - b.customerRemarks.length
-          );
-        } else {
-          this.data.sort(
-            (a, b) => b.customerRemarks.length - a.customerRemarks.length
-          );
-        }
-      } else if (item.key === "unit") {
-        // 单位
-        if (item.sort == "up") {
-          this.data.sort((a, b) => a.unit.length - b.unit.length);
-        } else {
-          this.data.sort((a, b) => b.unit.length - a.unit.length);
-        }
-      } else if (item.key === "createDate") {
-        if (item.sort == "up") {
-          this.data.sort(
-            (a, b) => new Date(a.createDate) - new Date(b.createDate)
-          );
-        } else {
-          this.data.sort(
-            (a, b) => new Date(b.createDate) - new Date(a.createDate)
-          );
-        }
-      }
     },
     log() {
       alert(1);
@@ -374,11 +323,8 @@ export default {
     },
     sortReduce(cell){
       this.data.splice(cell.rowIndex,1)
-      console.log(cell,'sortReduce')
     },
     sortAdd(cell){
-      console.log(cell,'sortAdd')
-
       this.data.splice(cell.rowIndex+1,0,{
         brandName: '',
         goodsCover: '',
@@ -386,6 +332,7 @@ export default {
         goodsName: ``,
         sn: ``,
         gift:'0',
+        id:utils.guid(),
         materialNo: '',
         unit: "",
         requiredQuantity: '',
@@ -398,8 +345,6 @@ export default {
       })
     },
     checkboxClick(cell){
-      console.log(cell,'checkboxClick')
-      // cell.rowData[cell.key]
       this.data[cell.rowIndex][cell.key] = cell.rowData[cell.key]=='0'?'1':'0'
     }
   }
@@ -411,11 +356,10 @@ body {
 }
 .demo-wrap{
   width: 70%;
-  height: 983px;
+  height: 100%;
   margin: 0px auto;
   padding-top: 50px;
   box-sizing: border-box;
-  padding:0 10px;
-  transform:translateY(50px);
+  // padding:0 10px;
 }
 </style>

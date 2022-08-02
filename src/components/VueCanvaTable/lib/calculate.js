@@ -11,7 +11,7 @@
     const height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
     let originPointX = serialWidth
 
-    const bottomFixedRows = 2
+    const bottomFixedRows = 0
     return {
       width: 0,
       height,

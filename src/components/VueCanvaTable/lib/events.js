@@ -11,7 +11,6 @@
 
 
 import { throttle, debounce } from "../utils"
-import hover from "./event/hover"
 import utils from "rutilsjs";
 import {hoverAddAndReduceCell} from "../components/sort"
 export default {
@@ -39,6 +38,7 @@ export default {
       window.removeEventListener('mousewheel', this.handleWheel)
       window.removeEventListener('keydown', this.handleKeydown, false)
       window.removeEventListener('keyup', this.handleKeyup, false)
+      this.$refs.canvas.removeEventListener('contextmenu',this.oncontextmenu,false)
     },
 
 
@@ -50,12 +50,17 @@ export default {
       window.addEventListener('mousemove', throttle(16, this.handleMousemove), true)
       window.addEventListener('mouseup', this.handleMouseup, false)
       // this.$refs.canvas.addEventListener('mouseleave', this.handleMouseup, false)
-      this.$refs.canvas.addEventListener('dblclick', this.handleDoubleClick, false)
       this.$refs.canvas.addEventListener('click', this.handleClick, false)
       window.addEventListener('resize', this.handleResize, false)
       window.addEventListener('mousewheel', this.handleWheel, {passive: false})
       window.addEventListener('keydown', this.handleKeydown, false)
       window.addEventListener('keyup', this.handleKeyup, false)
+      this.$refs.canvas.addEventListener('contextmenu',this.oncontextmenu,false)
+    },
+
+    oncontextmenu(e){
+      e.preventDefault();
+      this.isFocus = false
     },
 
     /**
@@ -89,166 +94,186 @@ export default {
     },
 
     /**
-     *
-     * 鼠标单击
+     * canvas 鼠标单击事件
      */
     handleClick (evt) {
 
-      // 如果不是选中状态
-      if (!this.isSelect) {
-        const x = evt.offsetX
-        const y = evt.offsetY
-
-        if (x > this.maxPoint.x && y > this.maxPoint.y && x < this.width && y < this.height) {
-          this.fullScreen()
-        }
-        if (!this.showColumnSet) {
-          const sx = (this.serialWidth - this.settingWidth) / 2
-          const ex = sx + this.settingWidth
-          const sy = (this.rowHeight - this.settingHeight) / 2
-          const ey = sy + this.settingHeight
-          if (x > sx && x < ex && y > sy && y < ey) {
-            alert('表头字段设置')
-            this.$emit('cornerClick')
+      const { offsetX: x, offsetY: y } = evt
+      if(this.bottomFixedRows !==2){
+        if(y > this.maxPoint.y) {
+          this.tooltip = ''
+          this.tooltipStyle = {
+            left:'-10000px',
+            top:'-10000px'
           }
-        } else {
-          this.handleColumnSet()
+          return
         }
+      }
 
-        const button = this.getButtonAt(x, y)
-        if (button) {
-          this.rowFocus = button
-          button.click(this.data[button.rowIndex], button.rowIndex)
-          this.rePainted()
-        }
-        const { displayColumns } = this.initDisplayItems()
+
+      /**
+       * 表头字段设置图标点击事件
+       */
+      const SettingStartX = (this.serialWidth - this.settingWidth) / 2
+      const SettingEndX = SettingStartX + this.settingWidth
+      const SettingStartY = (this.rowHeight - this.settingHeight) / 2
+      const SettingEndY = SettingStartY + this.settingHeight
+      if (x > SettingStartX && x < SettingEndX && y > SettingStartY && y < SettingEndY) {
+        alert('表头字段设置')
+        this.$emit('cornerClick')
+      }
+        /**
+       * 底部固定行数处理，左边隐藏部分，点击感应区域需要自适应处理
+       */
 
         if(this.bottomFixedRows===2){
-          if (x > this.serialWidth && x < displayColumns.slice(0, 5).reduce((p, c) => p += c.width, this.serialWidth) && y > this.height - this.rowHeight - this.scrollerWidth - this.rowHeight && y < this.height - this.rowHeight - this.scrollerWidth) {
+          // 列数前5个的宽度和 + 首列宽度
+          const mergeVal = this.columns.slice(0, 5).reduce((p, c) => p += c.width, this.serialWidth)
+          // 临界值
+          const limitVal = mergeVal + this.offset.x
+          if (x > this.serialWidth && x < limitVal && y > this.height  - this.scrollerWidth - 2*this.rowHeight && y < this.height - this.rowHeight - this.scrollerWidth) {
             this.offset.x = 0
             this.horizontalBar.x = 0
             requestAnimationFrame(this.rePainted)
-            const width = this.initDisplayItems().displayColumns.slice(0, 5).reduce((p, c) => p += c.width, 0)
+            const width = this.columns.slice(0, 5).reduce((p, c) => p += c.width, 0)
             const height = this.rowHeight
             const _x = this.serialWidth
-            const _y = this.height - this.rowHeight - this.scrollerWidth - this.rowHeight
+            const _y = this.height - this.scrollerWidth - 2*height
             this.isTotalVisible = true
             this.showInput(_x, _y, width, height)
             if (this.$refs.input) this.$refs.input.innerHTML = ''
             this.isFocus = false
             this.focusCell = null
-            this.isSelect = false
-
           } else {
             this.isTotalVisible = false
           }
         }
-      } else {
-        this.isTotalVisible = false
-        // this.isEditing = false
-        // this.inputStyles.top = '-10000px'
-      }
+      /**
+       * 表头排序单元格 点击事件
+       */
 
-      // 点击 表头排序单元格
-      const headerSortCell = this.getHeadCellAt(evt.offsetX, evt.offsetY)
-      if(headerSortCell){
-        const cache = [...this.allColumns]
-        const item = cache.find(i=>i.key===headerSortCell.key)
+      const headerSortCell = this.getHeadCellAt(evt) // 获取排序的单元格
+      if(headerSortCell && y<this.rowHeight){
         const it = this.columns.find(i=>i.key===headerSortCell.key)
-        if(item) {
+        for(const item of this.columns){
+          if(item.sort && item.sort!=='default'){
+            item.sort = 'default'
+            break
+          }
+        }
+
+        if(it) {
+          this.isFocus = false
           this.focusCell = null
-          this.$emit('sort',item, [...cache])
-          item.sort =['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
-          it.sort = ['default' , 'down'].includes( headerSortCell.sort) ? 'up':'down'
-          this.allColumns = cache
+          const clone = this.data
+          if( headerSortCell.sort === 'default' || headerSortCell.sort === 'down'){
+            this.data = clone.sort(it.sorter)
+            it.sort = 'up'
+          }else if(headerSortCell.sort === 'up'){
+            this.data = clone.sort(it.sorter).reverse()
+            it.sort = 'down'
+          }
           this.rePainted()
         }
       }
 
-      if(this.sortType===1){
-        // 序号加减
-        if(this.hoverAddReduceType===1){
-          this.focusCell = this.hoverAddReduceCell
-          this.rowFocus = {
-            cellX: this.focusCell.x,
-            cellY: this.focusCell.y,
-            rowIndex: this.focusCell.rowIndex,
-            offset: { ...this.offset }
-          }
-          this.$emit('sortReduce',this.focusCell)
-          console.log(this.hoverAddReduceCell,'---- 按钮')
-        }else if(this.hoverAddReduceType===2){
-          this.focusCell = this.hoverAddReduceCell
-          this.rowFocus = {
-            cellX: this.focusCell.x,
-            cellY: this.focusCell.y,
-            rowIndex: this.focusCell.rowIndex,
-            offset: { ...this.offset }
-          }
-          this.$emit('sortAdd',this.focusCell)
-          console.log(this.hoverAddReduceCell,'+++ 按钮')
-        }else{
-          // console.log('%c [ 首列 cell 不是加减区域  ]-179', 'font-size:13px; background:pink; color:#bf2c9f;', )
-          if(this.hoverAddReduceType===0){
-            if(this.hoverAddReduceCell){
-              this.focusCell = this.hoverAddReduceCell
-              this.rowFocus = {
-                cellX: this.focusCell.x,
-                cellY: this.focusCell.y,
-                rowIndex: this.focusCell.rowIndex,
-                offset: { ...this.offset }
+      /**
+       * 首列单元格 两种不同UI情况下的点击事件
+       */
+      if(x<=this.serialWidth){
+        if(this.sortType===1){
+          // 序号加减
+          if(this.hoverAddReduceType===1){
+            this.focusCell = this.hoverAddReduceCell
+            this.rowFocus = {
+              cellX: this.focusCell.x,
+              cellY: this.focusCell.y,
+              rowIndex: this.focusCell.rowIndex,
+              offset: { ...this.offset }
+            }
+
+            this.$emit('sortReduce',this.focusCell)
+
+          }else if(this.hoverAddReduceType===2){
+            this.focusCell = this.hoverAddReduceCell
+            this.rowFocus = {
+              cellX: this.focusCell.x,
+              cellY: this.focusCell.y,
+              rowIndex: this.focusCell.rowIndex,
+              offset: { ...this.offset }
+            }
+            this.$emit('sortAdd',this.focusCell)
+          }else{
+            if(this.hoverAddReduceType===0){
+              if(this.hoverAddReduceCell){
+                this.focusCell = this.hoverAddReduceCell
+                this.rowFocus = {
+                  cellX: this.focusCell.x,
+                  cellY: this.focusCell.y,
+                  rowIndex: this.focusCell.rowIndex,
+                  offset: { ...this.offset }
+                }
+                this.paintFocusCell(this.focusCell)
               }
-              this.paintFocusCell(this.focusCell)
             }
           }
-        }
-      }else if(this.sortType===2){
-        if(this.hoverSortCell ){
-          this.focusCell = this.hoverSortCell
-          this.rowFocus = {
-            cellX: this.focusCell.x,
-            cellY: this.focusCell.y,
-            rowIndex: this.focusCell.rowIndex,
-            offset: { ...this.offset }
+        }else if(this.sortType===2){
+          if(this.hoverSortCell ){
+            this.focusCell = this.hoverSortCell
+            this.rowFocus = {
+              cellX: this.focusCell.x,
+              cellY: this.focusCell.y,
+              rowIndex: this.focusCell.rowIndex,
+              offset: { ...this.offset }
+            }
+            this.paintFocusCell(this.focusCell)
           }
-          this.paintFocusCell(this.focusCell)
         }
+        this.isFocus = false
+        return
       }
-      // 选择
-      if(this.hoverCheckboxCell)this.$emit('checkboxClick',this.hoverCheckboxCell)
 
 
-    },
+      if(this.hoverCheckboxCell&& y>this.rowHeight){
+        this.$emit('checkboxClick',this.hoverCheckboxCell)
+      }
 
-    /**
-     * 鼠标双击
-     */
-    handleDoubleClick (evt) {
-      if(evt.offsetX>0 && evt.offsetX<this.serialWidth)return
+      /**
+       *
+       * 左右上下侧边隐藏编辑输入框部分，自适应到可视区域处理
+       *
+       */
       if (this.focusCell) {
-        if(this.focusCell.y<this.rowHeight){
+        const limit = this.height - this.scrollerWidth - this.rowHeight*(this.bottomFixedRows+1)
+        if(this.focusCell.x < this.serialWidth){ // 左👈
+          const diff =  this.focusCell.x - this.serialWidth
+          this.offset.x = this.offset.x - diff
+          this.resetScrollBar(this.maxPoint, this.bodyWidth, this.bodyHeight, this.fixedWidth)
+        }else if(this.focusCell.x + this.focusCell.width > this.maxPoint.x){//右👉
+          const diff =  this.focusCell.x + this.focusCell.width - this.maxPoint.x
+          this.offset.x = this.offset.x - diff
+          this.resetScrollBar(this.maxPoint, this.bodyWidth, this.bodyHeight, this.fixedWidth)
+        }else if(this.focusCell.y < this.rowHeight){ // 上👆
           const diff = this.focusCell.y -this.rowHeight
           this.offset.y = this.offset.y - diff
           this.horizontalBar.y = Math.abs(this.offset.y + diff)
-          this.rePainted()
-        }else{
-          const limit = this.height - this.scrollerWidth - this.rowHeight*(this.bottomFixedRows+1)
-          if( this.focusCell.y > limit ) {
-            const diff = this.focusCell.y - limit
-            this.offset.y = this.offset.y - diff
-            this.horizontalBar.y = Math.abs(this.offset.y + diff)
-            this.rePainted()
+        }else if(this.focusCell.y>limit){//下👇
+          const diff = this.focusCell.y - limit
+          this.offset.y = this.offset.y - diff
+          this.horizontalBar.y = Math.abs(this.offset.y + diff)
+        }
+        this.rePainted()
+        setTimeout(() => {
+          if(this.focusCell.column && !this.focusCell.column.disabled){
+            const { x, y, width, height, content } = this.focusCell
+            this.$refs.input.innerHTML = content
+            this.keepLastIndex(this.$refs.input)
+            this.showInput(x, y, width, height)
           }
-        }
-        const column = this.columns.find(i=>i.key===this.focusCell.key)
-        if(column && !column.disabled){
-          // 并且不能是第一列
-          const { x, y, width, height, content } = this.focusCell
-          this.$refs.input.innerHTML = content
-          this.keepLastIndex(this.$refs.input)
-          this.showInput(x, y, width, height)
-        }
+        },16)
       }
+
+
     },
 
     /**
@@ -256,8 +281,13 @@ export default {
      * 滚轮滚动
      */
     handleWheel (e) {
+      this.tooltip = ''
+      this.tooltipStyle = {
+        left:'-10000px',
+        top:'-10000px'
+      }
       if (e.target.tagName === 'CANVAS') {
-        if (!this.isEditing) {
+        if (!this.isFocus) {
           const { deltaX, deltaY } = e
           if (Math.abs(deltaX) > Math.abs(deltaY)) {
             const lastScrollX = this.offset.x
@@ -319,6 +349,16 @@ export default {
       const eY = evt.offsetY
       // 鼠标hover在canvas
       if(evt.target.tagName === 'CANVAS') {
+        if(eY>0 && eY<this.rowHeight){
+          if(this.hoverCell || this.rowHover){
+            this.hoverCell = null;
+            this.rowHover = null;
+
+            this.rePainted();
+            return
+          }
+        }
+        // hover + -
         hoverAddAndReduceCell.call(this,eX,eY)
         // 列宽
         if(this.lineCell && this.isDown) {
@@ -347,33 +387,37 @@ export default {
           document.querySelector('.excel-table').style.cursor = 'col-resize'
         } else {
           const cell = this.getCellAt( eX, eY)
-          this.hoverCheckGiftCell = null
           if(cell){
-            // console.log('%c [ cell ]-309', 'font-size:13px; background:pink; color:#bf2c9f;', cell)
-            if(cell.column.isImage  && cell.rowData && cell.rowData.image&&cell.rowData.image.state){
-              this.previeStyle = {
-                left:cell.x +Math.round(cell.width/2) - 10 +'px',
-                top:cell.y+Math.round(cell.height/2) - 10+'px',
-              }
+            if (
+              cell.column.isImage &&
+              cell.rowData &&
+              cell.rowData.image &&
+              cell.rowData.image.state
+            ) { // 图片 hover 效果
               this.previeUrl = cell.rowData.goodsPreview
-            } else if ( cell.column.isCheckbox){
-              this.hoverCheckboxCell = null
-               if(
-                x>=cell.x+(cell.width-20)/2 &&
-                x<=cell.x+cell.width/2+10 &&
-                y>=cell.y - 10 &&
-                y<=cell.y + cell.height/2+10
-              ){
-                this.hoverCheckboxCell = cell
-              }else{
-                this.hoverCheckboxCell = null
-              }
-            } else{
               this.previeStyle = {
-                left:'-10000px',
-                top:'-10000px',
+                left: cell.x + Math.round(cell.width / 2) - 10 + "px",
+                top: cell.y + Math.round(cell.height / 2) - 10 + "px"
               }
-              this.previeUrl = ''
+            } else if (
+              cell.column.isCheckbox
+            ) { // 复选框 单元格对象
+              if (
+                x >= cell.x + (cell.width - 20) / 2 &&
+                x <= cell.x + cell.width / 2 + 10 &&
+                y >= cell.y - 10 &&
+                y <= cell.y + cell.height / 2 + 10
+              ) {
+                this.hoverCheckboxCell = cell;
+              } else {
+                this.hoverCheckboxCell = null;
+              }
+            } else { // 图片预览重置
+              this.previeUrl = "";
+              this.previeStyle = {
+                left: "-10000px",
+                top: "-10000px"
+              }
             }
           }
           this.sortCell = null
@@ -383,27 +427,21 @@ export default {
 
 
         // row 的 hover 效果
-        hover.call(this,evt)
+        this.hover(evt)
+
         // 表头前面图标hover
         const headerCellInfo = this.getHeadColumnCell(evt)
-        if(headerCellInfo){
-          if(headerCellInfo.tip){
-            if(x >= headerCellInfo.tip.point.x
-              && x<= headerCellInfo.tip.point.x + headerCellInfo.tip.size
-              && y>= headerCellInfo.tip.point.y
-              && y<= headerCellInfo.tip.point.y + headerCellInfo.tip.size
-            ){
-              this.tooltip = headerCellInfo.tip.desc
-              this.tooltipStyle.left = this.i(headerCellInfo.tip.point.x + headerCellInfo.tip.size/2) + 'px'
-              this.tooltipStyle.top = this.i(headerCellInfo.tip.point.y + headerCellInfo.tip.size-2) + 'px'
-            }else{
-              this.tooltip = ''
-              this.tooltipStyle = {
-                left:'-10000px',
-                top:'-10000px'
-              }
-            }
-          }
+        if(
+          headerCellInfo &&
+          headerCellInfo.tip&&
+          x >= headerCellInfo.tip.point.x&&
+          x<= headerCellInfo.tip.point.x + headerCellInfo.tip.size&&
+          y>= headerCellInfo.tip.point.y&&
+          y<= headerCellInfo.tip.point.y + headerCellInfo.tip.size
+        ){
+          this.tooltip = headerCellInfo.tip.desc
+          this.tooltipStyle.left = this.i(headerCellInfo.tip.point.x + headerCellInfo.tip.size/2) + 'px'
+          this.tooltipStyle.top = this.i(headerCellInfo.tip.point.y + headerCellInfo.tip.size-2) + 'px'
         }else{
           this.tooltip = ''
           this.tooltipStyle = {
@@ -412,89 +450,129 @@ export default {
           }
         }
 
-        // 超出省略号
-        const cell = this.getCellAt(x,y)
-        if(cell){
-          const column = this.columns.find(i=>i.key===cell.key)
-          if(column.isImage || column.isCheckbox || column.disabled)return
-          if(cell.paintText &&cell.paintText[1]  && cell.paintText[1]!== cell.rowData[cell.key]){
-            this.tooltip= cell.content
-            this.tooltipStyle = {
-              left:cell.x + cell.width/2 +'px',
-              top:cell.y+cell.height - 4 +'px'
-            }
-            this.$emit('cellEllipsis',cell)
-          }else{
-            this.tooltip = ''
-            this.tooltipStyle = {
-              left:'-10000px',
-              top:'-10000px'
+        /**
+         * 单元格 超出省略号
+         */
+        if(!this.isFocus){
+          const cell = this.getCellAt(x,y)
+          if(cell){
+            // 如果是图片、复选框、禁止点击
+            if(cell.column.isImage || cell.column.isCheckbox || cell.column.disabled) return
+            // 原文本和处理后的文本不一致，则是超出省略了
+            if (
+              cell.paintText &&
+              cell.paintText[1] &&
+              cell.paintText[1] !== cell.rowData[cell.key]
+            ) {
+              this.tooltip = cell.content;
+              this.tooltipStyle = {
+                left: cell.x + cell.width / 2 + "px",
+                top: cell.y + cell.height - 4 + "px"
+              };
+              this.$emit("cellEllipsis", cell);
+            } else {
+              this.tooltip = "";
+              this.tooltipStyle = {
+                left: "-10000px",
+                top: "-10000px"
+              };
             }
           }
         }else{
-          // this.tooltip = ''
-          // this.tooltipStyle = {
-          //   left:'-10000px',
-          //   top:'-10000px'
-          // }
+          this.hoverCell = null;
+          this.rowHover = null;
+          this.rePainted()
         }
+      }else{
+        // 隐藏 提示框
+        this.tooltip = ''
+        this.tooltipStyle = {
+          left:'-10000px',
+          top:'-10000px'
+        }
+        if(this.hoverCell || this.rowHover){
+          this.hoverCell = null;
+          this.rowHover = null;
 
+          this.rePainted();
+        }
       }
 
+      // 纵向滚动
+      if (this.verticalBar.move) {
+        const height = this.maxPoint.y - this.verticalBar.size
+        const moveHeight = this.verticalBar.y + (evt.screenY - this.verticalBar.cursorY)
+        if (moveHeight > 0 && moveHeight < height) {
+          this.verticalBar.y += evt.screenY - this.verticalBar.cursorY
+        } else if (moveHeight <= 0) {
+          this.verticalBar.y = 0
+        } else {
+          this.verticalBar.y = height
+        }
+        this.verticalBar.cursorY = evt.screenY
+        this.offset.y = -this.verticalBar.y / this.verticalBar.k
+        requestAnimationFrame(this.rePainted)
+      } if (this.horizontalBar.move) {//横向滚动
+        let width = 0
+        if (this.fillWidth > 0) {
+          width = this.maxPoint.x - this.horizontalBar.size
+        } else {
+          width = (this.maxPoint.x + this.fixedWidth) - this.horizontalBar.size
+        }
+        const moveWidth = this.horizontalBar.x + (evt.screenX - this.horizontalBar.cursorX)
+        if (moveWidth > 0 && moveWidth < width) {
+          this.horizontalBar.x += evt.screenX - this.horizontalBar.cursorX
+        } else if (moveWidth <= 0) {
+          this.horizontalBar.x = 0
+        } else {
+          this.horizontalBar.x = width
+        }
+        this.horizontalBar.cursorX = evt.screenX
+        this.offset.x = -this.horizontalBar.x / this.horizontalBar.k
+        requestAnimationFrame(this.rePainted)
+      }
 
-        if(evt.target.tagName !== 'CANVAS'){
+    }, 16),
 
-          this.tooltip = ''
-          this.tooltipStyle = {
-            left:'-10000px',
-            top:'-10000px'
+    /**
+     * @description 在canvas 规定区域进行的 hover 效果
+     * @param {*} param0
+     */
+    hover({ offsetX: x, offsetY: y , target}) {
+      // 超出边界 去掉 row hover 效果
+      if (x < 0 || x > this.maxPoint.x || y < 0 || y > this.maxPoint.y) {
+        this.hoverCell = null;
+        this.rowHover = null;
+        this.rePainted();
+      } else {
+        const bodyCell = this.getCellAt(x, y); // body cell
+        if (bodyCell) {// 如果bodyCell 存在就说明hover body区域
+          // 如果原来的行索引 和 新的行索引不一致，说明换行了，再去hover
+          if (
+            !this.oldBodyCell ||
+            this.oldBodyCell.rowIndex !== bodyCell.rowIndex
+          ) {
+            this.oldBodyCell = bodyCell;
+            this.paintBodyRowHover(bodyCell);
+          }
+        } else {
+          // 如果hover的是首列cell
+          this.hoverCell = null;
+          this.rowHover = null;
+          const firstColumnCell = this.hoverFirstColumnCell(x, y);
+          // 首行单元格 hover，按需hover，性能优化
+          if (firstColumnCell) {
+            if (
+              !this.oldFisrtColumnCell ||
+              this.oldFisrtColumnCell.rowIndex !== firstColumnCell.rowIndex
+            ) {
+              this.oldFisrtColumnCell = firstColumnCell;
+              this.paintBodyRowHover(firstColumnCell);
+            }
           }
         }
-        // if(['vertical','horizontalBar'].includes(evt.target.className)){
-
-          // 纵向滚动
-          if (this.verticalBar.move) {
-            const height = this.maxPoint.y - this.verticalBar.size
-            const moveHeight = this.verticalBar.y + (evt.screenY - this.verticalBar.cursorY)
-            if (moveHeight > 0 && moveHeight < height) {
-              this.verticalBar.y += evt.screenY - this.verticalBar.cursorY
-            } else if (moveHeight <= 0) {
-              this.verticalBar.y = 0
-            } else {
-              this.verticalBar.y = height
-            }
-            this.verticalBar.cursorY = evt.screenY
-            this.offset.y = -this.verticalBar.y / this.verticalBar.k
-            requestAnimationFrame(this.rePainted)
-          }
-          //横向滚动
-          if (this.horizontalBar.move) {
-            let width = 0
-            if (this.fillWidth > 0) {
-              width = this.maxPoint.x - this.horizontalBar.size
-            } else {
-              width = (this.maxPoint.x + this.fixedWidth) - this.horizontalBar.size
-            }
-            const moveWidth = this.horizontalBar.x + (evt.screenX - this.horizontalBar.cursorX)
-            if (moveWidth > 0 && moveWidth < width) {
-              this.horizontalBar.x += evt.screenX - this.horizontalBar.cursorX
-            } else if (moveWidth <= 0) {
-              this.horizontalBar.x = 0
-            } else {
-              this.horizontalBar.x = width
-            }
-            this.horizontalBar.cursorX = evt.screenX
-            this.offset.x = -this.horizontalBar.x / this.horizontalBar.k
-            requestAnimationFrame(this.rePainted)
-          }
-        // }else{
-          // canvas 和 滚动条外的 移动
-          // console.log('%c [ out ]-342', 'font-size:13px; background:pink; color:#bf2c9f;', )
-          this.hoverCell = null
-          this.rowHover = null
-          // this.rePainted()
-        // }
-    }, 16),
+      }
+    },
 
     // 获取单元格内容是否超出省略号了
     getCellIsEllipsis(x,y){
@@ -556,24 +634,48 @@ export default {
     },
 
     // 获取排序的cloumn信息
-    getHeadCellAt(x, y,evt) {
-      if(evt &&evt.target&& evt.target.tagName !== 'CANVAS') return null
-      const {displayColumns} = this.initDisplayItems()
-      const headCell = displayColumns.find(i=>x>this.i(i.x)&&x< this.i(i.x)+i.width)
-      if(headCell && headCell.sort && y>0 && y <this.rowHeight){
-        return headCell
-      }else{
-        return null
+    getHeadCellAt({offsetX:x, offsetY:y, target}) {
+      if (target && target.tagName !== "CANVAS") return null;
+      const { displayColumns } = this.initDisplayItems();
+      const headCell = displayColumns.find(i => x > this.i(i.x) && x < this.i(i.x) + i.width);
+      if (headCell && headCell.sort && y > 0 && y < this.rowHeight) {
+        return headCell;
+      } else {
+        return null;
       }
     },
 
+    getElementByClassName(el, className) {
+      // 如果当前DOM身上存在传入的class类，直接返回该元素
+      if (el.classList.contains(className)) return el
+      // 查询该元素的父节点
+      let p = el.parentNode
+      // 自内向外循环查询每一层的父节点身上是否包含传入的class类
+      while (true) {
+        // 如果 查询到顶端，即document了，直接返回 null，未查询到
+        if (!p.classList) return null
+        // 如果查询到了，就返回该元素
+        if (p.classList.contains(className)) return p
+        // 父节点变量随着查询过程，不断更改为父节点
+        p = p.parentNode
+      }
+    },
+
+
+
     /**
      *
-     * 鼠标按下
+     * 鼠标按下 事件
      *
      */
     handleMousedown (evt) {
-      if(evt.target.tagName !== 'CANVAS')this.hideInput()
+      //如果鼠标按需的事件对象不属于 有效的 dom范围内 就隐藏输入框
+      const input = this.getElementByClassName(evt.target,'input-content')
+
+      if(!input){
+        this.hideInput()
+      }
+
       this.save()
       let needRepaint = false
 
@@ -601,6 +703,10 @@ export default {
               this.focusCell = null
               this.rePainted()
             }
+            if(!cell ||  (cell && (cell.column.isImage || cell.column.isCheckbox || cell.column.disabled)) ){
+              this.isFocus = false
+            }
+
           } else {
             this.isFocus = false
             this.focusCell = null
@@ -616,11 +722,11 @@ export default {
         this.isVisible = false
       } else if (!evt.target.classList.contains('input-content') && !evt.target.parentNode.classList.contains('footer')) {
         if (evt.target.tagName !== 'CANVAS') {
-          if (this.isEditing) {
-            this.save()
-            this.hideInput()
-            needRepaint = true
-          }
+          // if (this.isFocus) {
+          //   this.save()
+          //   this.hideInput()
+          //   needRepaint = true
+          // }
           if (this.isFocus) {
             this.isFocus = false
             this.focusCell = null
@@ -647,12 +753,14 @@ export default {
       }
     },
 
+
+
     /**
      *
      * 鼠标松开
      *
      */
-    handleMouseup () {
+    handleMouseup (e) {
       // 如果列宽目标列 存在 并且是鼠标按下的状态
       if(this.lineCell && this.isDown){
         const { x, width, key } = this.lineCell
@@ -662,7 +770,7 @@ export default {
         if(dispalyCloumnItem && allCloumnItem) {
           const item = this.columns.find(i=>i.key == key)
           if(item) item.width = item.width + diff
-          this.$emit('columnWidthChange',{key,diff} )
+          this.$emit('columnWidthChanged',{key,diff} )
         }
       }
       // 重置列宽虚线为隐藏
@@ -673,7 +781,11 @@ export default {
       this.horizontalBar.move = false
       // 重置纵向移动标识为false
       this.verticalBar.move = false
+
       this.sortCell = null
+      if(e.target && e.target.tagName!== 'CANVAS'){
+        this.isFocus = false
+      }
     },
 
     /**
@@ -692,7 +804,7 @@ export default {
      */
     handleKeydown (e) {
       if (this.isFocus) {
-        if (!this.isEditing) {
+        // if (!this.isEditing) {
           if (e.keyCode === 38) {
             e.preventDefault()
             this.moveFocus('up')
@@ -766,7 +878,7 @@ export default {
               document.execCommand('Copy')
             }
           }
-        }
+        // }
         if (e.keyCode === 13) {
           this.save()
           this.moveFocus('down')
@@ -784,30 +896,79 @@ export default {
 
     },
 
+
+    /**
+     *
+     * 左右上下 聚焦通用方法
+     *
+     */
+    inputMove(){
+      // 聚焦单元对象存在
+      if(this.focusCell){
+        // 标记 聚焦标识 为 true
+        this.isFocus = true
+        // 统计不显示
+        this.isTotalVisible = false
+        const { width, x, y, height, content, rowIndex, column: { disabled } }  = this.focusCell
+        if(!disabled){
+          // 自适应 x
+          const _x = x < this.serialWidth ?
+          this.serialWidth:
+          x > this.width - this.scrollerWidth - width ?
+          this.width - this.scrollerWidth - width : x
+          // 自适应 y
+          const _y = y < this.rowHeight ?
+          this.rowHeight:
+          y > this.maxPoint.y  - height ?
+          this.maxPoint.y  - height : y
+
+          this.rowFocus = {
+            cellX: _x,
+            cellY: _y,
+            rowIndex,
+            offset: { ...this.offset }
+          }
+          this.paintFocusCell(this.focusCell,false)
+          setTimeout(() => {
+            this.$refs.input.innerHTML = content
+            this.keepLastIndex(this.$refs.input)
+            this.showInput(_x, _y, width, height)
+          })
+        }else{
+          this.paintFocusCell(this.focusCell)
+        }
+      }
+    },
+
+    /**
+     * @description 键盘 左右上下 移动且聚焦
+     * @param {*} type
+     * @returns
+     */
     moveFocus (type) {
-      if (!this.focusCell) {
-        return
-      }
-      if (this.isSelect) {
-        this.isSelect = false
-      }
+      if (!this.focusCell)return
+      // 竖直方向 -> 行索引
       const row = this.focusCell.rowIndex
+      // 横向方向 -> 列索引
       const cell = this.focusCell.cellIndex
+      // 隐藏输入框
       this.hideInput()
+
       if (type === 'up') {
         if (this.getDisplayCellIndexByRowIndex(row) !== 0) {
           this.focusCell = Object.assign({}, this.getDisplayCellByRowIndex(this.displayCells, row - 1, cell), { offset: { ...this.offset } })
           if (this.focusCell.y < this.originPoint.y) {
             this.offset.y += this.originPoint.y - this.focusCell.y
           }
-          this.paintFocusCell(this.focusCell)
+          this.inputMove()
+
         } else {
           const rowIndex = this.displayRows[0].rowIndex
           if (rowIndex > 0) {
             this.offset.y += this.allRows[this.displayRows[0].rowIndex - 1].height
             const { displayCells } = this.rePainted()
             this.focusCell = Object.assign({}, this.getDisplayCellByRowIndex(displayCells, displayCells[0][0].rowIndex, cell), { offset: { ...this.offset } })
-            this.paintFocusCell(this.focusCell)
+            this.inputMove()
           }
         }
       } else if (type === 'down') {
@@ -816,14 +977,14 @@ export default {
           if (this.focusCell.y + this.focusCell.height > this.maxPoint.y) {
             this.offset.y -= (this.focusCell.y + this.focusCell.height) - this.maxPoint.y
           }
-          this.paintFocusCell(this.focusCell)
-        } else {
+          this.inputMove()
+        } else {// 未出现在可视区域的情况
           const rowIndex = this.displayRows[this.displayRows.length - 1].rowIndex
           if (rowIndex < this.allRows.length - 1) {
             this.offset.y -= this.allRows[this.displayRows[this.displayRows.length - 1].rowIndex + 1].height
             const { displayCells } = this.rePainted()
             this.focusCell = Object.assign({}, this.getDisplayCellByRowIndex(displayCells, displayCells[displayCells.length - 1][0].rowIndex, cell), { offset: { ...this.offset } })
-            this.paintFocusCell(this.focusCell)
+            this.inputMove()
           }
         }
       } else if (type === 'left') {
@@ -832,14 +993,14 @@ export default {
           if (this.focusCell.x < this.originPoint.x) {
             this.offset.x += this.originPoint.x - this.focusCell.x
           }
-          this.paintFocusCell(this.focusCell)
+          this.inputMove()
         } else {
           const cellIndex = this.displayColumns[0].cellIndex
           if (cellIndex > 0) {
             this.offset.x += this.allColumns[cellIndex - 1].width
             const { displayCells } = this.rePainted()
             this.focusCell = Object.assign({}, this.getDisplayCellByRowIndex(displayCells, row, this.getFirstDisplayCellIndex(displayCells)), { offset: { ...this.offset } })
-            this.paintFocusCell(this.focusCell)
+            this.inputMove()
           }
         }
       } else if (type === 'right') {
@@ -848,14 +1009,14 @@ export default {
           if (this.focusCell.x + this.focusCell.width > this.maxPoint.x - this.fixedWidth) {
             this.offset.x -= (this.focusCell.x + this.focusCell.width) - (this.maxPoint.x - this.fixedWidth)
           }
-          this.paintFocusCell(this.focusCell)
+          this.inputMove()
         } else {
           const cellIndex = this.displayColumns[this.displayColumns.length - 1 - this.displayFixedCells.length].cellIndex
           if (cellIndex < this.allColumns.length - 1) {
             this.offset.x -= this.allColumns[cellIndex + 1].width
             const { displayCells } = this.rePainted()
             this.focusCell = Object.assign({}, this.getDisplayCellByRowIndex(displayCells, row, this.getLastDisplayCellIndex(displayCells)), { offset: { ...this.offset } })
-            this.paintFocusCell(this.focusCell)
+            this.inputMove()
           }
         }
       }

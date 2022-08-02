@@ -42,6 +42,7 @@
       <div
         class="scroll-bar-horizontal"
         ref="horizontal"
+        @click.stop
         @mousedown="dragMove($event, 0)"
         :style="{
           width: horizontalBar.size + 'px',
@@ -57,10 +58,11 @@
       </div>
     </div>
 
-    <div class="vertical-container" :style="{ height: `${height - scrollerWidth + 2}px` }" @click="scroll($event, 1)">
+    <div class="vertical-container" :style="{ height: `${maxPoint.y}px` }" @click="scroll($event, 1)">
       <div
         class="scroll-bar-vertical"
         ref="horizontal"
+        @click.stop
         @mousedown="dragMove($event, 1)"
         :style="{ height: verticalBar.size + 'px', top: verticalBar.y + 'px' }">
         <div
@@ -71,6 +73,7 @@
               : 'background-color:#c1c1c1;'
           "></div>
       </div>
+      <div @click.stop class="vertical-empty" :style="{height:(bottomFixedRows===1?rowHeight:bottomFixedRows===2?rowHeight*2:0)+'px', bottom:-(bottomFixedRows===1?rowHeight:bottomFixedRows===2?rowHeight*2:0)+'px'}"></div>
     </div>
 
     <canvas ref="canvas" :width="width" :height="height" :style="`width:${width}px;height:${height}px;`"></canvas>
@@ -83,7 +86,7 @@
         <div class="tooltip-content">
             <div class="tooltip-arrow"></div>
             <div class="tooltip-inner">
-                <span style="text-align: center; display: inline-block;word-break: wrap;"> {{tooltip}} </span>
+                <span style="text-align: center; display: inline-block;word-break: wrap;width: 100%;"> {{tooltip}} </span>
             </div>
         </div>
     </div>
@@ -105,8 +108,6 @@ import painted from './lib/painted'
 import events from './lib/events'
 import calculate from './lib/calculate'
 import scroller from './lib/scroller'
-
-// type: default,noextent
 export default {
   mixins: [calculate, painted, events, scroller],
   props: {
@@ -149,7 +150,7 @@ export default {
       ctx: null,
 
       isDown: false,
-      isEditing: false,
+      // isEditing: false,
       isSelect: false,
       isFocus: false,
 
@@ -185,13 +186,14 @@ export default {
      */
     dataSource:{
       handler(value) {
-        this.data = [...value]
+        this.data = value
         this.initCanvas()
         this.initEvent()
         this.rePainted()
       },
       deep:true
     },
+
 
     /**
      * 表头字段列表变化
@@ -262,7 +264,7 @@ export default {
         this.isSelect = false
         this.rePainted()
         this.showInput(x, y, width, height)
-      } else if (!this.isEditing) {
+      } else if (!this.isFocus) {
         this.isPaste = false
 
         const objE = document.createElement('div')
@@ -404,6 +406,9 @@ export default {
         type: 'string'
       }
     },
+    /**
+     * 绘制聚焦单元格
+     */
     paintFocusCell (cell, is) {
       if (is) {
         if (cell) {
@@ -412,9 +417,11 @@ export default {
       } else {
         if (cell) {
           this.isFocus = true
-          if(!(this.focusCell &&this.focusCell.key &&  this.customComponentKeys.includes(this.focusCell.key))){
+          if(!(cell &&cell.key &&  this.customComponentKeys.includes(cell.key))){
             this.$refs.input.innerHTML = ''
             this.focusInput()
+          }else{
+            this.$emit('focus', cell.rowData, cell)
           }
           this.rePainted()
         }
@@ -433,7 +440,7 @@ export default {
      */
     save () {
       // 如果获取焦点并且处于编辑状态
-      if (this.focusCell && this.isEditing) {
+      if (this.focusCell && this.isFocus) {
         // 输入框内容 不等于
         if (this.$refs.input.innerText !== this.allCells[this.focusCell.rowIndex][this.focusCell.cellIndex].content) {
           this.$emit('updateItem', {
@@ -546,22 +553,24 @@ export default {
       return returnData
     },
     showInput (x, y, width, height) {
-      this.isEditing = true
+      // this.isEditing = true
       this.inputStyles = {
         position: 'absolute',
-        top: `${y - 1}px`,
-        left: `${x - 1}px`,
-        minWidth: `${width + 2}px`,
+        top: `${y}px`,
+        left: `${x}px`,
+        minWidth: `${width}px`,
         maxWidth: `${this.maxPoint.x - x > 300 ? 300 : this.maxPoint.x - x}px`,
-        minHeight: `${height + 2}px`
+        minHeight: `${height}px`
       }
     },
     hideInput () {
-      this.isEditing = false
+      // this.isEditing = false
+      this.isFocus = false
       this.inputStyles = {
         top: '-10000px',
         left: '-10000px'
       }
+      // if (this.$refs.input) this.$refs.input.innerHTML = ''
     },
     showTipMessage (message) {
       this.tipMessage = message
@@ -668,6 +677,14 @@ export default {
   right: 0;
   background: #f1f1f1;
 }
+.vertical-empty{
+  position: absolute;
+  bottom: -60px;
+  left: 0;
+  width: 18px;
+  height: 60px;
+  background-color: #fff;
+}
 
 .scroll-bar-vertical {
   position: absolute;
@@ -701,12 +718,13 @@ export default {
     margin: 0px;
     padding: 0px;
     overflow: hidden;
-    box-sizing: content-box;
+    box-sizing: border-box;
     resize: none;
     outline: none;
     border: 1px solid rgb(97, 173, 255);
     box-shadow: rgba(55, 142, 251 , 20%) 0px 0px 0px 2px;
     background-color: rgb(240, 249, 255);
+    padding-right: 10px;
 }
 
 .focus-area {

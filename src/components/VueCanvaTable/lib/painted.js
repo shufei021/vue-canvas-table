@@ -312,7 +312,9 @@
     paintScroller (ctx, height) {
       const p = this.p
       ctx.fillStyle = this.white
-      ctx.fillRect((this.width - height) + 1, 0, height - 1, this.height)
+      if(this.bottomFixedRows0===0){
+        ctx.fillRect((this.width - height) + 1, 0, height - 1, this.height)
+      }
       ctx.fillRect(0, (this.height - height) + 1, this.width, height - 1)
       ctx.beginPath()
       ctx.lineWidth = 1
@@ -485,8 +487,9 @@
       // 底部固定区域填充背景色，白色
       ctx.fillStyle = '#fff'
       const y = p(this.height - this.rowHeight - this.scrollerWidth)
+
       // 底部固定矩形左边宽高（x，y，w，h）
-      ctx.fillRect(0, y -(this.bottomFixedRows===1?0:this.rowHeight) , width, rowHeight)
+      ctx.fillRect(this.serialWidth, y -(this.bottomFixedRows===1?0:this.rowHeight) , width, rowHeight*2)
       // 开始绘制
       ctx.beginPath()
       // 底部固定区域绘制的border 颜色
@@ -536,10 +539,29 @@
             }
           }
 
-          ctx.fillText(column.isTotal ? column.total : '', p(column.x)  + this.i(ctx.measureText(column.total).width/2 + 10)  , y + (this.rowHeight / 2+2))
-          ctx.moveTo(p(column.x + column.width) - column.width, y)
-          ctx.lineTo(p(column.x + column.width), y)
-          ctx.lineTo(p(column.x + column.width), y + this.rowHeight)
+
+            ctx.fillText(column.isTotal ? column.total : '', p(column.x)  + this.i(ctx.measureText(column.total).width/2 + 10)  , y + (this.rowHeight / 2+2))
+            ctx.moveTo(p(column.x + column.width) - column.width, y)
+            ctx.lineTo(p(column.x + column.width), y)
+            ctx.lineTo(p(column.x + column.width), y + this.rowHeight)
+            if(this.bottomFixedRows===2){
+              if(index===displayColumns.length-1){
+                ctx.moveTo(p(column.x + column.width), y-this.rowHeight)
+                ctx.lineTo(p(this.maxPoint.x)+1, y-this.rowHeight)
+                ctx.lineTo(p(this.maxPoint.x)+1, y)
+
+                ctx.moveTo(p(column.x + column.width), y)
+                ctx.lineTo(p(this.maxPoint.x), y)
+                // ctx.lineTo(p(this.maxPoint.x), y+ this.rowHeight)
+              }
+
+            }else {
+              if(index===displayColumns.length-1){
+                ctx.moveTo(p(column.x + column.width), y)
+                ctx.lineTo(p(this.maxPoint.x)+1, y)
+                ctx.lineTo(p(this.maxPoint.x)+1, y+ this.rowHeight)
+              }
+            }
         }
       }
       ctx.stroke()
@@ -547,39 +569,55 @@
 
     // 绘制底部合并行
     paintTotal (ctx) {
+      //  处理问题
       const {
         p,
         rowHeight, // 左上角表格高度
         serialWidth // 左上角表格宽度
       } = this
-
-      if(this.bottomFixedRows===2){
+      if(this.bottomFixedRows===1){
+        ctx.beginPath()
+        ctx.strokeStyle = this.borderColor
+        ctx.fillStyle = '#fff'
+        const _y =p(this.height - this.rowHeight - this.scrollerWidth)
+        ctx.fillRect(0, _y, serialWidth-2, rowHeight)
+        ctx.fillStyle = this.headerColor
+        ctx.fillText('合计', serialWidth / 2, _y + this.rowHeight / 2)
+        ctx.lineWidth = 1
+        ctx.moveTo(p(serialWidth) - this.serialWidth, _y)
+        ctx.lineTo(p(serialWidth), _y)
+        ctx.lineTo(p(serialWidth), _y + this.rowHeight)
+        ctx.stroke()
+      }else{
         ctx.beginPath()
         ctx.strokeStyle = this.borderColor
         ctx.fillStyle = '#fff'
         const y = p(this.height - this.rowHeight - this.scrollerWidth - this.rowHeight)
-        ctx.fillRect(0, y, serialWidth, rowHeight)
+        ctx.fillRect(0, y, serialWidth-1, rowHeight)
         ctx.fillStyle = this.headerColor
         ctx.lineWidth = 1
         ctx.moveTo(p(serialWidth - this.serialWidth) , y)
         ctx.lineTo(p(serialWidth), y)
         ctx.lineTo(p(serialWidth), y + this.rowHeight)
         ctx.stroke()
+
+        // 合并
+        ctx.beginPath()
+        ctx.strokeStyle = this.borderColor
+        ctx.fillStyle = '#fff'
+        const _y =p(this.height - this.rowHeight - this.scrollerWidth)
+        ctx.fillRect(0, _y, serialWidth, rowHeight)
+        ctx.fillStyle = this.headerColor
+        ctx.fillText('合计', serialWidth / 2, _y + this.rowHeight / 2)
+        ctx.lineWidth = 1
+        ctx.moveTo(p(serialWidth) - this.serialWidth, _y)
+        ctx.lineTo(p(serialWidth), _y)
+        ctx.lineTo(p(serialWidth), _y + this.rowHeight)
+        ctx.stroke()
       }
 
-      // 合并
-      ctx.beginPath()
-      ctx.strokeStyle = this.borderColor
-      ctx.fillStyle = '#fff'
-      const _y =p(this.height - this.rowHeight - this.scrollerWidth)
-      ctx.fillRect(0, _y, serialWidth, rowHeight)
-      ctx.fillStyle = this.headerColor
-      ctx.fillText('合计', serialWidth / 2, _y + this.rowHeight / 2)
-      ctx.lineWidth = 1
-      ctx.moveTo(p(serialWidth) - this.serialWidth, _y)
-      ctx.lineTo(p(serialWidth), _y)
-      ctx.lineTo(p(serialWidth), _y + this.rowHeight)
-      ctx.stroke()
+
+
     },
 
     paintBodyRowHover (cell) {
