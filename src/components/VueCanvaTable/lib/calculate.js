@@ -11,7 +11,7 @@
     const height = this.leftHeight ? window.innerHeight - this.leftHeight : 500
     let originPointX = serialWidth
 
-    const bottomFixedRows = 0
+    const bottomFixedRows = 2
     return {
       width: 0,
       height,
@@ -73,10 +73,6 @@
     // }
   },
   methods: {
-    fullScreen () {
-
-    },
-
     // 初始化尺寸大小
     initSize () {
       if (this.$refs.grid) {
@@ -95,11 +91,11 @@
             columnCount += 1
           }
         }
-        this.fillWidth = 0
-        if (this.bodyWidth < this.width - this.scrollerWidth) {
-          this.fillWidth = (this.width - this.bodyWidth - this.scrollerWidth) / columnCount
-          this.bodyWidth = this.width - this.scrollerWidth
-        }
+        // this.fillWidth = 0
+        // if (this.bodyWidth < this.width - this.scrollerWidth) {
+        //   this.fillWidth = (this.width - this.bodyWidth - this.scrollerWidth) / columnCount
+        //   this.bodyWidth = this.width - this.scrollerWidth
+        // }
         this.setBodyHeight(this.allRows, this.originPoint)
         this.setFixedWidth(this.allColumns, this.fillWidth)
         this.setMaxpoint(this.width, this.height, this.fixedWidth, this.scrollerWidth, this.fillWidth)
@@ -570,28 +566,7 @@
       return null
     },
 
-    getCellsBySelect (area) {
-      const cells = []
-      for (let i = area.rowIndex; i < area.rowIndex + area.rowCount; i += 1) {
-        const row = this.allCells[i]
-        const temp = []
-        let startX = 0
-        let maxWidth = Infinity
-        for (let j = 0; j < row.length; j += 1) {
-          if (area.cellIndex === j) {
-            maxWidth = startX + area.width
-          }
-          if (startX < maxWidth && j >= area.cellIndex) {
-            temp.push(row[j])
-          } else if (startX > maxWidth) {
-            break
-          }
-          startX += row[j].width + this.fillWidth
-        }
-        cells.push(temp)
-      }
-      return cells
-    },
+
 
     getCellByRowAndKey (rowIndex, key) {
       const cells = this.allCells[rowIndex]
@@ -636,6 +611,74 @@
       }
     },
 
+    getDisplayEditCell(){
+      if(!this.focusCell)return
+      const is = (el)=>el.style.display === 'none'
+      const input = this.$refs.input
+      const customInput = this.$refs.customInput
+      const footerInput = this.$refs.footerInput
+      if(!is(input)){
+        const id = input.id
+        const displayCells = this.initDisplayItems().displayCells
+        for(let i = 0; i < displayCells.length; i++){
+          const rowCell = displayCells[i]
+          for(let j = 0; j < rowCell.length; j++){
+            const cell = rowCell[j]
+            if(cell.rowData.id === id && cell.key === this.focusCell.key){
+              if(cell.y<this.rowHeight ||
+                cell.y>this.maxPoint.y-this.rowHeight ||
+                cell.x<this.serialWidth ||
+                cell.x>this.maxPoint.x - cell.width
+              ) {
+                input.style.top = '-10000px'
+                input.style.left = '-10000px'
+              }else{
+                input.style.top = cell.y + 'px'
+                input.style.left = cell.x + 'px'
+              }
+              return
+            }
+          }
+          input.style.top = '-10000px'
+          input.style.left = '-10000px'
+        }
+      }else if(!is(customInput)){
+        if(!this.focusCell)return
+        const id = customInput.id
+        const displayCells = this.initDisplayItems().displayCells
+        for(let i = 0; i < displayCells.length; i++){
+          const rowCell = displayCells[i]
+          for(let j = 0; j < rowCell.length; j++){
+            const cell = rowCell[j]
+            if(cell.rowData.id === id && cell.key === this.focusCell.key){
+              if(cell.y<this.rowHeight ||
+                cell.y>this.maxPoint.y-this.rowHeight ||
+                cell.x<this.serialWidth ||
+                cell.x>this.maxPoint.x - cell.width
+              ) {
+                customInput.style.top = '-10000px'
+                customInput.style.left = '-10000px'
+              }else{
+                customInput.style.top = cell.y + 'px'
+                customInput.style.left = cell.x + 'px'
+              }
+              return
+            }
+          }
+          customInput.style.top = '-10000px'
+          customInput.style.left = '-10000px'
+        }
+      }else if(!is(footerInput)){
+        if(this.displayColumns[0].key!==this.allColumns[0].key || this.displayColumns[0].x<this.serialWidth){
+          footerInput.style.top = '-10000px'
+          footerInput.style.left = '-10000px'
+        }else{
+          footerInput.style.top = this.maxPoint.y + 'px'
+          footerInput.style.left =this.serialWidth + 'px'
+        }
+      }
+    },
+
     initDisplayItems () {
       const displayColumns = this.getDisplayColumns()
       const displayRows = this.getDisplayRows()
@@ -664,5 +707,6 @@
       }
       return { displayColumns, displayRows, displayCells, displayFixedCells }
     }
-  }
+  },
+
 }

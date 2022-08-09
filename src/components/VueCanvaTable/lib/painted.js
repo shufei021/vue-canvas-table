@@ -58,6 +58,7 @@
   methods: {
     initCanvas () {
       const canvas = this.$refs.canvas
+      this.canvas =canvas
       let ctx = ''
       if (this.ctx) {
         ctx = this.ctx
@@ -74,6 +75,21 @@
         ctx.backingStorePixelRatio || 1
 
       this.ratio = (window.devicePixelRatio || 1) / backingStore
+
+      if(!this.ratioFlag){
+        var oldWidth = canvas.width;
+        var oldHeight = canvas.height;
+
+
+        canvas.width = oldWidth * this.ratio;
+        canvas.height = oldHeight * this.ratio;
+
+        canvas.style.width = oldWidth + 'px';
+        canvas.style.height = oldHeight + 'px';
+
+        ctx.scale(this.ratio, this.ratio);
+        this.ratioFlag = true
+      }
 
       this.getAllCells(this.data, this.columns)
       this.setBodyHeight(this.allRows, this.originPoint)
@@ -360,6 +376,7 @@
           ctx.strokeStyle = this.borderColor
           // 获取焦点单元格存在，或者 hover单元格存在
           if ((rowFocus && rowFocus.cellY === item.y) || (this.hoverCell && this.hoverCell.y === item.y )) {
+
             ctx.fillStyle = this.selectRowColor
             ctx.fillRect(-1, item.y + 1, serialWidth + 1, item.height)
 
@@ -539,29 +556,29 @@
             }
           }
 
+          // 第二行
+          ctx.fillText(column.isTotal ? column.total : '', p(column.x)  + this.i(ctx.measureText(column.total).width/2 + 10)  , y + (this.rowHeight / 2+2))
+          ctx.moveTo(p(column.x + column.width) - column.width, y)
+          ctx.lineTo(p(column.x + column.width), y)
+          ctx.lineTo(p(column.x + column.width), y + this.rowHeight)
+          if(this.bottomFixedRows===2){
+            if(index===displayColumns.length-1){
+              ctx.moveTo(p(this.maxPoint.x)+1, y-this.rowHeight)
+              ctx.lineTo(p(this.maxPoint.x)+1, y+this.rowHeight)
 
-            ctx.fillText(column.isTotal ? column.total : '', p(column.x)  + this.i(ctx.measureText(column.total).width/2 + 10)  , y + (this.rowHeight / 2+2))
-            ctx.moveTo(p(column.x + column.width) - column.width, y)
-            ctx.lineTo(p(column.x + column.width), y)
-            ctx.lineTo(p(column.x + column.width), y + this.rowHeight)
-            if(this.bottomFixedRows===2){
-              if(index===displayColumns.length-1){
-                ctx.moveTo(p(column.x + column.width), y-this.rowHeight)
-                ctx.lineTo(p(this.maxPoint.x)+1, y-this.rowHeight)
-                ctx.lineTo(p(this.maxPoint.x)+1, y)
+              ctx.moveTo(p(column.x + column.width)+1, y)
+              ctx.lineTo(p(this.maxPoint.x)+1, y)
 
-                ctx.moveTo(p(column.x + column.width), y)
-                ctx.lineTo(p(this.maxPoint.x), y)
-                // ctx.lineTo(p(this.maxPoint.x), y+ this.rowHeight)
-              }
-
-            }else {
-              if(index===displayColumns.length-1){
-                ctx.moveTo(p(column.x + column.width), y)
-                ctx.lineTo(p(this.maxPoint.x)+1, y)
-                ctx.lineTo(p(this.maxPoint.x)+1, y+ this.rowHeight)
-              }
+              ctx.moveTo(p(column.x + column.width)+1, y-this.rowHeight)
+              ctx.lineTo(p(this.maxPoint.x)+1, y-this.rowHeight)
             }
+          }else {
+            if(index===displayColumns.length-1){
+              ctx.moveTo(p(column.x + column.width), y)
+              ctx.lineTo(p(this.maxPoint.x)+1, y)
+              ctx.lineTo(p(this.maxPoint.x)+1, y+ this.rowHeight)
+            }
+          }
         }
       }
       ctx.stroke()
@@ -629,7 +646,7 @@
           rowIndex: this.hoverCell.rowIndex,
           offset: { ...this.offset }
         }
-        this.paintFocusCell(cell, true)
+        this.rePainted()
       }
     },
 
@@ -689,84 +706,71 @@
 
     // 表体单元格内容填充
     paintBody(ctx, displayCells) {
-        const { paintText, i, p } = this
-        ctx.beginPath()
-        ctx.font = 'normal 12px PingFang SC'
-        ctx.fillStyle = this.textColor
-        // 显示的单元格
-        for (const [rowIndex,rows] of displayCells.entries() ) {
 
-            for (const  item of rows) {
+      const { paintText, i, p } = this
+      ctx.beginPath()
+      ctx.font = 'normal 12px PingFang SC'
+      ctx.fillStyle = this.textColor
+      // 显示的单元格
+      for (const [rowIndex,rows] of displayCells.entries() ) {
+        for (const  item of rows) {
+          // 找到单元格对应的列
+          if (!item.fixed || this.fillWidth > 0) {
+            const column = item.column
+            // 如果文本存在有值
+            if ((item.paintText && item.paintText.length) || column.isCheckbox) {
 
-              // 找到单元格对应的列
-              const column = this.columns.find(i=>i.key===item.key)
-
-              if (!item.fixed || this.fillWidth > 0) {
-                // 如果文本存在有值
-                if (item.paintText && item.paintText.length) {
-                  // 文本内容
-                  const text = item.paintText[0]
-                  // 如果当前单元格对应列是居中
-                  if(column.center){
-                    // 如果是渲染图片
-                    if(column.isImage){
-                      ctx.drawImage(item.rowData.image, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
-                    }else if(column.isCheckbox){// 如果是复选框
-                      ctx.drawImage(item.rowData[column.key]=='1'? this.checkedOn : this.checkedOff, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
-                    }else{
-                      // 文本内容才canvas 的宽度
-                      const _w = ctx.measureText(text).width
-                      // 超出的文本
-                      if(_w>item.width-20){
-                        const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
-                        const _w_txt = ctx.measureText(_txt).width
-                        // 文本超出的 x值
-                       const _x = i(item.x + (_w_txt / 2)+10)
-                        ctx.fillText(
-                          _txt,
-                          _x,
-                          i(15 + item.y)+2
-                        )
-                        // text = _txt
-                        item.paintText.length==1 && item.paintText.push(_txt)
-                        // item.Text = _txt
-                      }else{
-                        ctx.fillText(
-                          text,
-                          i(item.x)+i(_w/2)+10,
-                          i(15 + item.y)+2
-                        )
-                      }
-                    }
+              // 如果当前单元格对应列是居中
+              if(column.center || column.isCheckbox){
+                // 如果是渲染图片
+                if(column.isImage){
+                  ctx.drawImage(item.rowData.image, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
+                }else if(column.isCheckbox){// 如果是复选框
+                  ctx.drawImage(item.rowData[column.key]? this.checkedOn : this.checkedOff, i(item.x + (item.width / 2)-10), i(15 + item.y-10), 20, 20)
+                }else{
+                   // 文本内容
+                   const text = item.paintText[0]
+                  // 文本内容才canvas 的宽度
+                  const _w = ctx.measureText(text).width
+                  // 超出的文本
+                  if(_w>item.width-20){
+                    const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
+                    const _w_txt = ctx.measureText(_txt).width
+                    // 文本超出的 x值
+                    const _x = i(item.x + (_w_txt / 2)+10)
+                    ctx.fillText(_txt,_x,i(15 + item.y)+2)
+                    item.paintText.length==1 && item.paintText.push(_txt)
                   }else{
-                    // 文本内容才canvas 的宽度
-                    const _w = ctx.measureText(text).width
-                    if(_w>item.width-20){
-                      const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
-                      const _w_txt = ctx.measureText(_txt).width
-                      // 文本超出的 x值
-                      const _x = i(item.x + (_w_txt / 2)+10)
-                        // 超出的文本
-                      ctx.fillText(
-                        _txt,
-                        _x,
-                        i(15 + item.y)+2
-                      )
-                      // item.Text = _txt
-                      item.paintText.length==1 && item.paintText.push(_txt)
+                    if(item.column.textAlign=='center'){
+                      ctx.fillText(text,i(item.x + (item.width / 2)),i(15 + item.y))
                     }else{
-                      ctx.fillText(
-                        text,
-                        i(item.x)+i(_w/2)+10,
-                        i(15 + item.y)+2
-                      )
+                      ctx.fillText(text,i(item.x)+i(_w/2)+10,i(15 + item.y)+2)
                     }
                   }
                 }
+              }else{
+                 // 文本内容
+                const text = item.paintText[0]
+                // 文本内容才canvas 的宽度
+                const _w = ctx.measureText(text).width
+                if(_w>item.width-20){
+                  const _txt = String(text).slice(0,this.getWdithIndex(ctx,text,item.width-20))+'...'
+                  const _w_txt = ctx.measureText(_txt).width
+                  // 文本超出的 x值
+                  const _x = i(item.x + (_w_txt / 2)+10)
+                    // 超出的文本
+                  ctx.fillText(_txt, _x, i(15 + item.y)+2)
+                  // item.Text = _txt
+                  item.paintText.length==1 && item.paintText.push(_txt)
+                }else{
+                  ctx.fillText( text,i(item.x)+i(_w/2)+10,i(15 + item.y)+2)
+                }
               }
             }
+          }
         }
-        ctx.stroke()
+      }
+      ctx.stroke()
     },
 
 

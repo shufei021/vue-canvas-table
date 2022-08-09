@@ -2,7 +2,6 @@
   <div class="demo-wrap">
     <VueCanvaTable
       ref="VueCanvaTable"
-      :customComponentKeys="customComponentKeys"
       :allFixedCells="allFixedCells"
       :dataSource="data"
       :columns="columns"
@@ -14,7 +13,7 @@
       @updateValue="update"
       @sortReduce="sortReduce"
       @sortAdd="sortAdd"
-      @checkboxClick="checkboxClick"
+      @checkboxChange="checkboxChange"
     >
       <!-- 底部选择商品组件 -->
       <template #footer>
@@ -83,6 +82,7 @@ export default {
         key: "brandName",
         width: 190,
         center: true,
+        isCustomComponent:true,
       },
        {
         title: "图片",
@@ -92,19 +92,13 @@ export default {
         isImage:true,
         disabled:true
       },
-      //  {
-      //   center: true,
-      //   title: "选择",
-      //   key: "check",
-      //   width: 48,
-      //   isCheckbox:true,
-      //   disabled:true
-      // },
-
       {
         title: "商品名称",
         key: "goodsName",
-        width: 150
+        width: 150,
+        center: true,
+        // textAlign:'center',
+        disabled:true
       },
       {
         title: "规格型号",
@@ -138,6 +132,7 @@ export default {
         key: "customerRemarks",
         width: 150,
         isCloumnBg: true,
+        isCustomComponent:true,
         tip:{
           img:tip,
           size:14,
@@ -219,7 +214,7 @@ export default {
         // },
       ],
       activeColumnsKey: "",
-      customComponentKeys: ["customerRemarks", "brandName"]
+      // customComponentKeys: ["customerRemarks", "brandName"]
     };
   },
   created() {
@@ -227,8 +222,8 @@ export default {
     for (let i = 0; i < 100; i += 1) {
       this.data1.push({
         brandName: `111111111111博世${i}`,
-        goodsName: `电钻${i}`,
-        gift: Math.random() > 0.5?'0':'1',
+        goodsName: `电钻电钻电钻电钻电钻电钻电钻电钻电钻电钻电钻电钻电钻电钻${i}`,
+        gift: Math.random() > 0.5,
         // check:  Math.random() > 0.5?'0':'1',
         sn: `${'SDFSDSDFSDSDFSDSDFSD'.slice(0,Math.round(Math.random()*20))}${i}`,
         materialNo: i + 1,
@@ -280,7 +275,7 @@ export default {
           goodsCover: 'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/40/h/40',
           goodsPreview:'https://test-1251330838.cos.ap-chengdu.myqcloud.com/150000000/20226/756509841132339/23f74b59617c467772584f5cbfa8a923.jpg?imageView2/1/w/400/h/400',
           goodsName: `电钻${i}`,
-          gift: Math.random() > 0.5?'0':'1',
+          gift: Math.random() > 0.5,
           sn: `${'SDFSDSDFSDSDFSDSDFSD'.slice(0,Math.round(Math.random()*20))}${i}`,
           materialNo: i + this.data.length,
           unit: "个",
@@ -314,11 +309,11 @@ export default {
     focus(value, cell) {
       const columnsKey = this.columns.map(i => i.key)[cell.cellIndex];
       this.activeColumnsKey = columnsKey;
-      console.log(
-        "%c [ cell ]-101",
-        "font-size:13px; background:pink; color:#bf2c9f;",
-        this.columns.map(i => i.key)[cell.cellIndex]
-      );
+      // console.log(
+      //   "%c [ cell ]-101",
+      //   "font-size:13px; background:pink; color:#bf2c9f;",
+      //   this.columns.map(i => i.key)[cell.cellIndex]
+      // );
       console.log(value);
     },
     sortReduce(cell){
@@ -331,7 +326,7 @@ export default {
         goodsPreview:'',
         goodsName: ``,
         sn: ``,
-        gift:'0',
+        gift:false,
         id:utils.guid(),
         materialNo: '',
         unit: "",
@@ -344,8 +339,7 @@ export default {
         image:''
       })
     },
-    checkboxClick(cell){
-      this.data[cell.rowIndex][cell.key] = cell.rowData[cell.key]=='0'?'1':'0'
+    checkboxChange(cell){
     }
   }
 };
@@ -355,7 +349,7 @@ body {
   margin: 0;
 }
 .demo-wrap{
-  width: 70%;
+  width: 91%;
   height: 100%;
   margin: 0px auto;
   padding-top: 50px;

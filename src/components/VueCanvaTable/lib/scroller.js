@@ -25,6 +25,7 @@ export default {
   created () {
     // 鼠标滚轮滚动事件
     this.$on('scroll', () => {
+      console.log('%c [ scroll ]-28', 'font-size:13px; background:pink; color:#bf2c9f;', )
       this.horizontalBar.x = -parseInt(this.offset.x * this.horizontalBar.k, 10)
       this.verticalBar.y = -parseInt(this.offset.y * this.verticalBar.k, 10)
     })
@@ -72,7 +73,7 @@ export default {
       }
     },
 
-    dragMove (e, type) {
+    dragMoveMousedown (e, type) {
       if (type) {
         this.verticalBar.move = true
         this.verticalBar.cursorY = e.screenY

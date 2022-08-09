@@ -2,7 +2,7 @@
  * @Description:
  * @Author: shufei
  * @Date: 2022-06-28 15:38:16
- * @LastEditTime: 2022-07-26 16:04:22
+ * @LastEditTime: 2022-08-02 14:50:38
  * @LastEditors: shufei
  */
 'use strict'
@@ -29,27 +29,28 @@ const devWebpackConfig = merge(baseWebpackConfig, {
 
   // these devServer options should be customized in /config/index.js
   devServer: {
-    clientLogLevel: 'warning',
-    historyApiFallback: {
-      rewrites: [
-        { from: /.*/, to: path.posix.join(config.dev.assetsPublicPath, 'index.html') },
-      ],
-    },
-    hot: true,
-    contentBase: false, // since we use CopyWebpackPlugin.
-    compress: true,
-    host: '0.0.0.0',
-    port: PORT || config.dev.port,
-    open: config.dev.autoOpenBrowser,
-    overlay: config.dev.errorOverlay
-      ? { warnings: false, errors: true }
-      : false,
-    publicPath: config.dev.assetsPublicPath,
-    proxy: config.dev.proxyTable,
-    quiet: true, // necessary for FriendlyErrorsPlugin
-    watchOptions: {
-      poll: config.dev.poll,
-    }
+    host: '192.122.9.16',
+    // clientLogLevel: 'warning',
+    // historyApiFallback: {
+    //   rewrites: [
+    //     { from: /.*/, to: path.posix.join(config.dev.assetsPublicPath, 'index.html') },
+    //   ],
+    // },
+    // hot: true,
+    // contentBase: false, // since we use CopyWebpackPlugin.
+    // compress: true,
+    // host: '0.0.0.0',
+    // port: PORT || config.dev.port,
+    // open: config.dev.autoOpenBrowser,
+    // overlay: config.dev.errorOverlay
+    //   ? { warnings: false, errors: true }
+    //   : false,
+    // publicPath: config.dev.assetsPublicPath,
+    // proxy: config.dev.proxyTable,
+    // quiet: true, // necessary for FriendlyErrorsPlugin
+    // watchOptions: {
+    //   poll: config.dev.poll,
+    // }
   },
   plugins: [
     new webpack.DefinePlugin({

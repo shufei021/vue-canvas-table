@@ -5,6 +5,7 @@
     <div
       class="input-content footer"
       v-show="isTotalVisible"
+      ref="footerInput"
       :style="inputStyles"
       @keydown.tab.prevent
       @keydown.enter.prevent
@@ -16,7 +17,8 @@
     <!-- 单元格 自定义组件 -->
     <div
       class="input-content custom"
-      v-show="!isTotalVisible  && (focusCell &&focusCell.key &&  customComponentKeys.includes(focusCell.key))"
+      ref="customInput"
+      v-show="!isTotalVisible  && (focusCell &&focusCell.column &&  focusCell.column.isCustomComponent)"
       :style="inputStyles">
       <slot name="cell"></slot>
     </div>
@@ -24,7 +26,7 @@
     <!-- 单元格正常输入编辑  -->
     <div
       class="input-content"
-      v-show="!isTotalVisible && !(focusCell &&focusCell.key &&  customComponentKeys.includes(focusCell.key))"
+      v-show="!isTotalVisible && !(focusCell &&focusCell.column &&  focusCell.column.isCustomComponent)"
       :style="inputStyles"
       ref="input"
       contenteditable="true"
@@ -37,13 +39,13 @@
 
     <div class="horizontal-container"
       :style="{ width: `${width - scrollerWidth + 2}px` }"
-      @click="scroll($event, 0)"
+      @click="scroll($event, false)"
     >
       <div
         class="scroll-bar-horizontal"
         ref="horizontal"
         @click.stop
-        @mousedown="dragMove($event, 0)"
+        @mousedown="dragMoveMousedown($event, false)"
         :style="{
           width: horizontalBar.size + 'px',
           left: horizontalBar.x + 'px',
@@ -58,12 +60,12 @@
       </div>
     </div>
 
-    <div class="vertical-container" :style="{ height: `${maxPoint.y}px` }" @click="scroll($event, 1)">
+    <div class="vertical-container" :style="{ height: `${maxPoint.y}px` }" @click="scroll($event, true)">
       <div
         class="scroll-bar-vertical"
         ref="horizontal"
         @click.stop
-        @mousedown="dragMove($event, 1)"
+        @mousedown="dragMoveMousedown($event, true)"
         :style="{ height: verticalBar.size + 'px', top: verticalBar.y + 'px' }">
         <div
           class="vertical"
@@ -104,12 +106,14 @@
 </template>
 
 <script>
+import common from './lib/Common'
+import eventCommon from './lib/EventCommon'
 import painted from './lib/painted'
 import events from './lib/events'
 import calculate from './lib/calculate'
 import scroller from './lib/scroller'
 export default {
-  mixins: [calculate, painted, events, scroller],
+  mixins: [common,eventCommon, calculate, painted, events, scroller],
   props: {
     sortType:{
       type:Number,
@@ -137,11 +141,7 @@ export default {
       default: false
     },
     allStatsList:Array,
-    templateData: Object,
-    customComponentKeys:{
-      type: Array,
-      default: ()=>[]
-    }
+    templateData: Object
   },
   data () {
     return {
@@ -160,7 +160,6 @@ export default {
       data: null,
       showColumnSet: false,
       ratio: 1,
-      showTip: false,
       tipMessage: '',
       initRows: 300,
       isTotalVisible: false,
@@ -417,7 +416,7 @@ export default {
       } else {
         if (cell) {
           this.isFocus = true
-          if(!(cell &&cell.key &&  this.customComponentKeys.includes(cell.key))){
+          if(!(cell &&cell.key && cell.column.isCustomComponent)){
             this.$refs.input.innerHTML = ''
             this.focusInput()
           }else{
@@ -562,6 +561,12 @@ export default {
         maxWidth: `${this.maxPoint.x - x > 300 ? 300 : this.maxPoint.x - x}px`,
         minHeight: `${height}px`
       }
+      try {
+
+this.$refs.input.id= this.focusCell.rowData.id
+        this.$refs.customInput.id = this.focusCell.rowData.id
+      } catch (error) {
+      }
     },
     hideInput () {
       // this.isEditing = false
@@ -574,10 +579,6 @@ export default {
     },
     showTipMessage (message) {
       this.tipMessage = message
-      this.showTip = true
-      setTimeout(() => {
-        this.showTip = false
-      }, 2000)
     }
   }
 }
@@ -712,19 +713,21 @@ export default {
   position: fixed;
   // background-color: #fff;
   z-index: 10;
-  text-indent: 10px;
+  // text-indent: 10px;
   text-align: left;
-  line-height: 30px;
-    margin: 0px;
-    padding: 0px;
-    overflow: hidden;
-    box-sizing: border-box;
-    resize: none;
-    outline: none;
-    border: 1px solid rgb(97, 173, 255);
-    box-shadow: rgba(55, 142, 251 , 20%) 0px 0px 0px 2px;
-    background-color: rgb(240, 249, 255);
-    padding-right: 10px;
+  // line-height: 30px;
+  margin: 0px;
+  padding: 0px;
+  overflow: hidden;
+  box-sizing: border-box;
+  resize: none;
+  outline: none;
+  border: 1px solid rgb(97, 173, 255);
+  box-shadow: rgba(55, 142, 251 , 20%) 0px 0px 0px 2px;
+  background-color: rgb(240, 249, 255);
+  padding:5px 10px;
+  display: flex;
+  align-items: center;
 }
 
 .focus-area {
