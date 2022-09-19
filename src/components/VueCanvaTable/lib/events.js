@@ -468,10 +468,14 @@ export default {
         this.offset.y = 0
         this.horizontalBar.x = 0
         this.verticalBar.y = 0
-
         this.initCanvas()
         this.initSize() // 重置尺寸
-    },
+        setTimeout(() => {
+          if(this.$refs.grid.offsetWidth!==this.width+2){
+            this.handleResize()
+          }
+        })
+  },
 
 
     /**

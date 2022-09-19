@@ -2,7 +2,7 @@
  * @Description: 事件公共混入
  * @Author: shufei
  * @Date: 2022-08-09 09:20:18
- * @LastEditTime: 2022-08-09 17:26:39
+ * @LastEditTime: 2022-08-15 09:54:48
  * @LastEditors: shufei
  */
 export default {
@@ -118,8 +118,8 @@ export default {
 
     // 全键盘 左右上下移动
     keepMove(){
-      if(!this.focusCell )return
       setTimeout(() => {
+        if(!this.focusCell )return
         const { width, x, y, height, content, rowIndex, column: { disabled } }  = this.focusCell
         if(y<this.rowHeight || y> this.maxPoint.y-this.rowHeight){
           return this.hideInput()

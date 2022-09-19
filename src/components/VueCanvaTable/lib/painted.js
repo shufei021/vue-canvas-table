@@ -498,6 +498,7 @@
 
     // 底部填充
     paintFooter (ctx, displayColumns) {
+
       // return
       const { p, width, rowHeight } = this
 
@@ -582,6 +583,7 @@
         }
       }
       ctx.stroke()
+
     },
 
     // 绘制底部合并行

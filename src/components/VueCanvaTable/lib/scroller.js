@@ -30,6 +30,25 @@ export default {
       this.verticalBar.y = -parseInt(this.offset.y * this.verticalBar.k, 10)
     })
   },
+  watch:{
+    /**
+     * @descripton 通过监听 横向滚动位置 x 是否为0，和 是否显示 地图统计，对底部统计输入框进行显示控制
+     * @param {*} val
+     */
+    'offset.x'(val){
+      if(this.isTotalVisible){
+        if(val === 0){
+          const width = this.columns.slice(0, 5).reduce((p, c) => p += c.width, 0)
+          const height = this.rowHeight
+          const _x = this.serialWidth
+          const _y = this.height - this.scrollerWidth - 2*height
+          this.showInput(_x, _y, width, height)
+        }else{
+          this.hideInput()
+        }
+      }
+    }
+  },
   methods: {
     scroll (e, type) {
       if (type && this.verticalBar.size) {
@@ -51,7 +70,7 @@ export default {
           requestAnimationFrame(this.rePainted)
         }
       }
-      if (type === 0 && this.horizontalBar.size) {
+      if (!type&& this.horizontalBar.size) {
         if (e.offsetX < this.horizontalBar.x) {
           let k = 15
           if (this.horizontalBar.x - e.offsetX < 15) {
@@ -71,16 +90,19 @@ export default {
           requestAnimationFrame(this.rePainted)
         }
       }
+      this.$emit('scroll')
+      this.getDisplayEditCell()
     },
 
-    dragMoveMousedown (e, type) {
-      if (type) {
+    dragMoveMousedown (e, is) {
+      if (is) {
         this.verticalBar.move = true
         this.verticalBar.cursorY = e.screenY
       } else {
         this.horizontalBar.move = true
         this.horizontalBar.cursorX = e.screenX
       }
+
     },
 
     resetScrollBar ({ x, y }, bodyWidth, bodyHeight, fixedWidth) {

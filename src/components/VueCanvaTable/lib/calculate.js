@@ -77,6 +77,7 @@
     initSize () {
       if (this.$refs.grid) {
         this.width = this.$refs.grid.offsetWidth - 2
+        console.log('%c [ this.width ]-80', 'font-size:13px; background:pink; color:#bf2c9f;', this.width)
         this.height = this.leftHeight ? window.innerHeight - this.leftHeight : 50
 
 

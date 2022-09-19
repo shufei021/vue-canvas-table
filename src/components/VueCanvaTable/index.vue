@@ -861,6 +861,7 @@ canvas {
     top: -10000px;
     width: 1px;
     height: 1px;
+    z-index: 10;
 }
 .tooltip-content{
     width: 186px;
